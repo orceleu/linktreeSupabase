@@ -1,21 +1,47 @@
 "use client";
 import Image from "next/image";
 
-import { createClient } from "@supabase/supabase-js";
 import { Database } from "./database.type";
-//import Profil from "./pages/profils/[slug]";
-
+import { supabase } from "./supabase/supabaseInstance";
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
+import { Button } from "@nextui-org/react";
+import { NextUIProvider } from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
+import { Slider } from "@nextui-org/react";
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenuToggle,
+  NavbarMenu,
+  NavbarMenuItem,
+} from "@nextui-org/react";
+import Link from "next/link";
 // Create a single supabase client for interacting with your database
+export default function Home({
+  Component,
+  pageProps,
+}: {
+  Component: any;
+  pageProps: any;
+}) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuItems = [
+    "Profile",
+    "Dashboard",
+    "Activity",
+    "Analytics",
+    "System",
+    "Deployments",
+    "My Settings",
+    "Team Settings",
+    "Help & Feedback",
+    "Log Out",
+  ];
 
-export default function Home() {
-  const supabase = createClient<Database>(
-    "https://otuqsjkpvrkthepuffcs.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dXFzamtwdnJrdGhlcHVmZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE0NjU0NTcsImV4cCI6MjAyNzA0MTQ1N30.ebAshwk3B9i7Vlh99ZiWBa-qIa0q6CzirgCA6NldONg"
-  );
   const fetchdata = async () => {
     const countriesWithCitiesQuery = supabase.from("countries").select(`
       id,
@@ -51,14 +77,92 @@ export default function Home() {
     console.log(statusText, status);
   };
   useEffect(() => {
-    fetchdata();
+    //fetchdata();
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <p>helloooo ,this is my first supabase postgres database.</p>
-      <button onClick={addData}>add data</button>
-      <button onClick={deleteData}>delete</button>
-    </main>
+    <NextUIProvider>
+      {" "}
+      <Navbar onMenuOpenChange={setIsMenuOpen} className="fixed top">
+        <NavbarContent>
+          <NavbarMenuToggle
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            className="sm:hidden"
+          />
+          <NavbarBrand>
+            <p className="font-bold text-inherit">ACME</p>
+          </NavbarBrand>
+        </NavbarContent>
+
+        <NavbarContent className="hidden sm:flex gap-4" justify="center">
+          <NavbarItem>
+            <Link color="foreground" href="#">
+              Features
+            </Link>
+          </NavbarItem>
+          <NavbarItem isActive>
+            <Link href="#" aria-current="page">
+              Customers
+            </Link>
+          </NavbarItem>
+          <NavbarItem>
+            <Link color="foreground" href="#">
+              Integrations
+            </Link>
+          </NavbarItem>
+        </NavbarContent>
+        <NavbarContent justify="end">
+          <NavbarItem className="hidden lg:flex">
+            <Link href="#">Login</Link>
+          </NavbarItem>
+          <NavbarItem>
+            <Button as={Link} color="primary" href="#" variant="flat">
+              Sign Up
+            </Button>
+          </NavbarItem>
+        </NavbarContent>
+        <NavbarMenu>
+          {menuItems.map((item, index) => (
+            <NavbarMenuItem key={`${item}-${index}`}>
+              <Link
+                color={
+                  index === 2
+                    ? "primary"
+                    : index === menuItems.length - 1
+                    ? "danger"
+                    : "foreground"
+                }
+                className="w-full"
+                href="#"
+              >
+                {item}
+              </Link>
+            </NavbarMenuItem>
+          ))}
+        </NavbarMenu>
+      </Navbar>
+      <main className="flex min-h-screen flex-col items-center justify-between p-24">
+        <p>helloooo ,this is my first supabase postgres database.</p>
+        <Button color="success" className="text-blue-500">
+          Click me
+        </Button>
+        <Input
+          type="email"
+          color="primary"
+          label="Email"
+          placeholder="Enter your email"
+          defaultValue="junior@nextui.org"
+          className="max-w-[220px]"
+        />
+        <Slider
+          label="Temperature"
+          step={0.01}
+          maxValue={1}
+          minValue={0}
+          defaultValue={0.4}
+          className="max-w-md"
+        />
+      </main>
+    </NextUIProvider>
   );
 }

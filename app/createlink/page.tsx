@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { v4 } from "uuid";
-
+import { supabase } from "../supabase/supabaseInstance";
+import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from "next/navigation";
 import { Database } from "../database.type";
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
 interface UserType {
@@ -10,16 +12,30 @@ interface UserType {
 }
 
 export default function Createlink() {
-  const supabase = createClient<Database>(
-    "https://otuqsjkpvrkthepuffcs.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dXFzamtwdnJrdGhlcHVmZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE0NjU0NTcsImV4cCI6MjAyNzA0MTQ1N30.ebAshwk3B9i7Vlh99ZiWBa-qIa0q6CzirgCA6NldONg"
-  );
   const [value, setValue] = useState("");
   const [name, setname] = useState("");
   const [desc, setdesc] = useState("");
   const [usersurl, setuserurl] = useState<UserType[]>([]);
   const [isuserUrlDispo, setUserUrlDispo] = useState(false);
   const [textDispo, setTextDispo] = useState("");
+  const [email, setEmail] = useState("");
+
+  const route = useRouter();
+
+  const supabase = createBrowserClient(
+    "https://otuqsjkpvrkthepuffcs.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dXFzamtwdnJrdGhlcHVmZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE0NjU0NTcsImV4cCI6MjAyNzA0MTQ1N30.ebAshwk3B9i7Vlh99ZiWBa-qIa0q6CzirgCA6NldONg"
+  );
+
+  const isLogin = async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user) {
+      route.push("/login");
+    }
+    if (data.user?.email !== null && data.user?.email !== undefined) {
+      setEmail(data.user.email);
+    }
+  };
   const fetchdata = async () => {
     const countriesWithCitiesQuery = supabase
       .from("users")
@@ -43,18 +59,22 @@ export default function Createlink() {
   const addNameUrl = async () => {
     if (value !== "createlink") {
       if (isuserUrlDispo) {
-        const { data, error } = await supabase
-          .from("users")
-          .insert({
-            userid: `${v4().substring(0, 8)}`,
-            userplan: "3",
-            userurl: value,
-            username: name,
-            userdesc: desc,
-          })
-          .select();
+        if (name !== "") {
+          const { data, error } = await supabase
+            .from("users")
+            .insert({
+              userid: `${v4().substring(0, 8)}`,
+              userplan: "3",
+              userurl: value,
+              username: name,
+              userdesc: desc,
+            })
+            .select();
 
-        console.log(data);
+          console.log(data);
+        } else {
+          alert(" empty");
+        }
       } else {
         alert("name indisponible!");
       }
@@ -78,6 +98,7 @@ export default function Createlink() {
     setname(value);
   };
   useEffect(() => {
+    isLogin();
     if (value.length < 5) {
       console.log("your name is too short!");
     } else {
