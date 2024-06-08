@@ -17,7 +17,21 @@ import { Input } from "@nextui-org/react";
 import { Tabs, Tab } from "@nextui-org/react";
 import { Separator } from "@/components/ui/separator";
 import { Divider } from "@nextui-org/react";
-import GooglePayButton from "@google-pay/button-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
+import "chart.js/auto";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Copy } from "lucide-react";
+
 import {
   Dropdown,
   DropdownTrigger,
@@ -267,13 +281,18 @@ export default function Dashboard() {
   function home() {
     return (
       <div className="flex w-full">
-        <div className="w-3/5  bg-white flex justify-center ">
+        <ScrollArea className="w-4/6  bg-white p-10 mt-5">
+          <p className="fixed top-2 text-blue-600 font-bold text-3xl ">
+            ssply.
+            <span className="text-emerald-500 font-bold text-3xl">bio</span>
+          </p>
+
           <div className="grid mx-auto">
             <Tabs
               aria-label="Options"
               color="primary"
               variant="underlined"
-              className="mt-5"
+              className="my-5"
               onSelectionChange={(key: any) => {
                 console.log(key);
 
@@ -339,9 +358,7 @@ export default function Dashboard() {
                     dispo? <span>{textDispo}</span>
                   </p>
                 </div>
-                <Switch isSelected={isSelected} onValueChange={setIsSelected}>
-                  Airplane mode
-                </Switch>
+
                 <Input
                   value={name}
                   onChange={onChangename}
@@ -354,26 +371,81 @@ export default function Dashboard() {
                   placeholder="your description"
                   className="my-5"
                 />
-                <Button
-                  variant="outline"
-                  onClick={addNameUrl}
-                  className="rounded-[50px]"
-                >
-                  add
-                </Button>
-                <p>your will be able to add any linka after</p>
+                <Separator className="my-5" />
+                <p>add social link vertical? horizontal?</p>
+                <div className="my-2">
+                  <p>facebook link</p>
+                  <Input
+                    value={desc}
+                    maxLength={100}
+                    onChange={onChangedesc}
+                    placeholder="your social link"
+                  />
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">Share</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Share link</DialogTitle>
+                      <DialogDescription>
+                        Anyone who has this link will be able to view this.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2">
+                      <div className="grid flex-1 gap-2">
+                        <ScrollArea className="h-72 w-48 rounded-md border">
+                          <div className="p-4">
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                            <Button>click</Button>
+                          </div>
+                        </ScrollArea>
+                      </div>
+                      <Button type="submit" size="sm" className="px-3">
+                        <span className="sr-only">Copy</span>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <p>your will be able to add any link after</p>
               </>
             ) : null}
 
             {appearrancelayoutShow ? <>{AppearanceLayout()}</> : null}
 
             <br />
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={addNameUrl}
+                className="rounded-[50px] fixed bottom-2  bg-red-200 w-1/3 mx-10"
+              >
+                add
+              </Button>
+            </div>
           </div>
+        </ScrollArea>
 
-          <Divider orientation="vertical" className="mx-10" />
-        </div>
-
-        <div className=" w-2/5 flex justify-center ">
+        <Divider orientation="vertical" className="mx-2" />
+        <div className=" w-2/6 flex justify-center ">
           <div className="grid ">
             <Snippet color="success" className="my-3">
               http://localhost:3000/orcel
@@ -421,14 +493,14 @@ export default function Dashboard() {
                   alt=""
                   className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
                 />
+
                 <p className="text-xl text-center">
                   @<span>{name}</span>
                 </p>
-                <div className="mx-10">
-                  <p className="my-5 text-gray-500 text-center text-[12px] ">
-                    {desc}
-                  </p>
-                </div>
+
+                <p className="my-5 mx-10 text-gray-500 text-center text-[12px] ">
+                  {desc}
+                </p>
 
                 <div className=" bg-white w-[250px] h-[50px] border-emerald-300 rounded-3xl  p-6 border-[2px]">
                   <p className="text-center mb-2">youtube</p>
@@ -449,17 +521,60 @@ export default function Dashboard() {
     );
   }
   function analytics() {
+    const options = {
+      maintainAspectRatio: false, // Permet de désactiver le ratio d'aspect fixe
+    };
     return (
-      <div>
-        <p>analytics</p>
-      </div>
+      <>
+        <div>
+          <p className="mt-10 ml-10 text-4xl font-bold underline">Analytics</p>
+          <br />
+          <br />
+          <br />
+          <br />
+          <p className="text-blue-500 font-semibold">Link bio</p>
+          <br />
+          <div className="rounded-md shadow-md p-10 lg:size-[600px] mx-5">
+            <Line
+              data={{
+                labels: ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+                datasets: [
+                  {
+                    label: "revenue",
+                    data: [300, 200, 400, 34, 345, 500, 700, 1000, 1500],
+                  },
+                ],
+              }}
+              options={options}
+            />
+          </div>
+          <Separator className="my-[100px]" />
+
+          <p className="text-blue-500 font-semibold">Link shorter</p>
+          <br />
+          <div className="rounded-md shadow-md p-10 lg:size-[600px] mx-5">
+            <Line
+              data={{
+                labels: ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
+                datasets: [
+                  {
+                    label: "revenue",
+                    data: [300, 200, 400, 34, 345, 500, 700, 1000, 1500],
+                  },
+                ],
+              }}
+              options={options}
+            />
+          </div>
+        </div>
+      </>
     );
   }
   function shortlink() {
     return (
-      <div>
-        <p>shortlink</p>
-      </div>
+      <>
+        <p className="mt-10 ml-10 text-4xl font-bold underline">shortlink</p>
+      </>
     );
   }
 }
@@ -480,8 +595,54 @@ function ButtonLayout() {
 }
 function AppearanceLayout() {
   return (
-    <div>
+    <div className="grid">
       <p>appearance layout</p>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
+      <Button>click</Button>
     </div>
   );
 }

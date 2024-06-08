@@ -19,7 +19,7 @@ export async function login(formData: FormData) {
 
   if (error) {
     console.log(error);
-    //redirect("/error");
+    redirect("/error");
   }
 
   revalidatePath("/dashboard", "layout");
@@ -40,7 +40,7 @@ export async function signup(formData: FormData) {
 
   if (error) {
     console.log(error);
-    //redirect("/error");
+    redirect("/error");
   }
 
   revalidatePath("/dashboard", "layout");
