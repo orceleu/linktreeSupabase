@@ -30,7 +30,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Copy } from "lucide-react";
+import {
+  Copy,
+  Delete,
+  DeleteIcon,
+  FacebookIcon,
+  TrashIcon,
+} from "lucide-react";
 
 import {
   Dropdown,
@@ -57,6 +63,11 @@ interface UserType {
   userurl: string;
 }
 
+type Item = {
+  id: number;
+  name: string;
+  label: string;
+};
 export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [isSelected, setIsSelected] = useState(true);
@@ -65,6 +76,12 @@ export default function Dashboard() {
   const [desc, setdesc] = useState("");
   const [usersurl, setuserurl] = useState<UserType[]>([]);
   const [isuserUrlDispo, setUserUrlDispo] = useState(false);
+  const [facebookshow, setFacebookshow] = useState(false);
+  const [items, setItems] = useState<Item[]>([]);
+  const [id, setId] = useState<number>(1);
+  const [inputs, setInputs] = useState<
+    { id: number; value: string; label: string }[]
+  >([]);
 
   const [textDispo, setTextDispo] = useState("");
   const [paymentData, setPaymentData] = useState(null);
@@ -75,9 +92,41 @@ export default function Dashboard() {
   const [isHome, setHome] = useState(true);
   const [isanalytics, setAnalytics] = useState(false);
   const [isshortlink, setshortlink] = useState(false);
-  useEffect(() => {
-    // Initialization and configuration of Google Pay
-  }, []);
+
+  const handleInputChange = (id: number, value: string) => {
+    setInputs((prevInputs) =>
+      prevInputs.map((input) => (input.id === id ? { ...input, value } : input))
+    );
+  };
+
+  const handleLabelChange = (id: number, label: string) => {
+    setInputs((prevInputs) =>
+      prevInputs.map((input) => (input.id === id ? { ...input, label } : input))
+    );
+  };
+
+  const addItem = () => {
+    setItems((prevItems) => [...prevItems, { id, name: "", label: "" }]);
+    setInputs((prevInputs) => [...prevInputs, { id, value: "", label: "" }]);
+    setId((prevId) => prevId + 1);
+  };
+
+  const handleSave = (id: number) => {
+    const input = inputs.find((input) => input.id === id);
+    if (input) {
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === id
+            ? { ...item, name: input.value, label: input.label }
+            : item
+        )
+      );
+    }
+  };
+  const handleDelete = (id: number) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    setInputs((prevInputs) => prevInputs.filter((input) => input.id !== id));
+  };
 
   const handlePaymentSuccess = (paymentMethod: any) => {
     console.log("Payment successful", paymentMethod);
@@ -373,8 +422,84 @@ export default function Dashboard() {
                 />
                 <Separator className="my-5" />
                 <p>add social link vertical? horizontal?</p>
+
+                <div>
+                  <h1>Dynamic List</h1>
+                  <button onClick={addItem}>Add Item</button>
+                  <ul>
+                    {items.map((item) => (
+                      <li key={item.id}>
+                        <input
+                          type="text"
+                          value={
+                            inputs.find((input) => input.id === item.id)
+                              ?.label || ""
+                          }
+                          onChange={(e) =>
+                            handleLabelChange(item.id, e.target.value)
+                          }
+                          placeholder="Enter item label"
+                        />
+                        <input
+                          type="text"
+                          value={
+                            inputs.find((input) => input.id === item.id)
+                              ?.value || ""
+                          }
+                          onChange={(e) =>
+                            handleInputChange(item.id, e.target.value)
+                          }
+                          placeholder="Enter item name"
+                        />
+                        <button onClick={() => handleSave(item.id)}>
+                          Save
+                        </button>
+                        <button onClick={() => handleDelete(item.id)}>
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    All items:{" "}
+                    {items
+                      .map((item) => `${item.label}: ${item.name}`)
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </div>
+
+                {facebookshow ? (
+                  <div className="my-2">
+                    <p>facebook link</p>
+                    <Input
+                      value={desc}
+                      maxLength={100}
+                      onChange={onChangedesc}
+                      placeholder="your social link"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setFacebookshow(false);
+                      }}
+                    >
+                      <TrashIcon />
+                    </Button>
+                  </div>
+                ) : null}
+
                 <div className="my-2">
-                  <p>facebook link</p>
+                  <p>Instagram link</p>
+                  <Input
+                    value={desc}
+                    maxLength={100}
+                    onChange={onChangedesc}
+                    placeholder="your social link"
+                  />
+                </div>
+                <div className="my-2">
+                  <p>Youtube link</p>
                   <Input
                     value={desc}
                     maxLength={100}
@@ -384,37 +509,52 @@ export default function Dashboard() {
                 </div>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline">Share</Button>
+                    <Button variant="outline">Add social link</Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Share link</DialogTitle>
+                      <DialogTitle>Add link</DialogTitle>
                       <DialogDescription>
-                        Anyone who has this link will be able to view this.
+                        Choose your social media link.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center space-x-2">
                       <div className="grid flex-1 gap-2">
-                        <ScrollArea className="h-72 w-48 rounded-md border">
-                          <div className="p-4">
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
-                            <Button>click</Button>
+                        <ScrollArea className="w-full  rounded-md border">
+                          <div className="grig grid-cols-3 gap-3 ">
+                            <DialogClose asChild>
+                              <Button
+                                variant="outline"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  console.log(
+                                    "facebook selected,so it can be showing"
+                                  );
+                                  setFacebookshow(true);
+                                }}
+                              >
+                                <FacebookIcon />
+                              </Button>
+                            </DialogClose>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
                           </div>
                         </ScrollArea>
                       </div>
-                      <Button type="submit" size="sm" className="px-3">
-                        <span className="sr-only">Copy</span>
-                        <Copy className="h-4 w-4" />
-                      </Button>
                     </div>
                     <DialogFooter className="sm:justify-start">
                       <DialogClose asChild>
@@ -452,6 +592,7 @@ export default function Dashboard() {
             </Snippet>
             <Tabs
               aria-label="Options"
+              className="my-4"
               color="primary"
               variant="bordered"
               onSelectionChange={(key: any) => {
