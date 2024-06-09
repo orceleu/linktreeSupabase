@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 
 import { createBrowserClient } from "@supabase/ssr";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { v4 } from "uuid";
 import { supabase } from "../supabase/supabaseInstance";
@@ -35,7 +35,12 @@ import {
   Delete,
   DeleteIcon,
   FacebookIcon,
+  InstagramIcon,
+  PlusIcon,
+  SnailIcon,
   TrashIcon,
+  TwitchIcon,
+  TwitterIcon,
 } from "lucide-react";
 
 import {
@@ -68,6 +73,8 @@ type Item = {
   name: string;
   label: string;
 };
+const reseauLinkToAdd: string[] = [];
+
 export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [isSelected, setIsSelected] = useState(true);
@@ -76,13 +83,15 @@ export default function Dashboard() {
   const [desc, setdesc] = useState("");
   const [usersurl, setuserurl] = useState<UserType[]>([]);
   const [isuserUrlDispo, setUserUrlDispo] = useState(false);
-  const [facebookshow, setFacebookshow] = useState(false);
+  const [isfacebooklinkdisable, setFacebooklinkdisable] = useState(false);
+  const [isinstagramlinkdisable, setInstagramlinkdisable] = useState(false);
+  const [isXlinkdisable, setXlinkdisable] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
   const [id, setId] = useState<number>(1);
   const [inputs, setInputs] = useState<
     { id: number; value: string; label: string }[]
   >([]);
-
+  const [labelselected, setlabelselected] = useState("");
   const [textDispo, setTextDispo] = useState("");
   const [paymentData, setPaymentData] = useState(null);
 
@@ -106,9 +115,15 @@ export default function Dashboard() {
   };
 
   const addItem = () => {
-    setItems((prevItems) => [...prevItems, { id, name: "", label: "" }]);
-    setInputs((prevInputs) => [...prevInputs, { id, value: "", label: "" }]);
-    setId((prevId) => prevId + 1);
+    const newId = items.length + 1;
+    setItems((prevItems) => [
+      ...prevItems,
+      { id: newId, name: "", label: labelselected },
+    ]);
+    setInputs((prevInputs) => [
+      ...prevInputs,
+      { id: newId, value: "", label: "" },
+    ]);
   };
 
   const handleSave = (id: number) => {
@@ -124,8 +139,21 @@ export default function Dashboard() {
     }
   };
   const handleDelete = (id: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
-    setInputs((prevInputs) => prevInputs.filter((input) => input.id !== id));
+    const updatedItems = items.filter((item) => item.id !== id);
+    const updatedInputs = inputs.filter((input) => input.id !== id);
+
+    const rearrangedItems = updatedItems.map((item, index) => ({
+      ...item,
+      id: index + 1,
+    }));
+
+    const rearrangedInputs = updatedInputs.map((input, index) => ({
+      ...input,
+      id: index + 1,
+    }));
+
+    setItems(rearrangedItems);
+    setInputs(rearrangedInputs);
   };
 
   const handlePaymentSuccess = (paymentMethod: any) => {
@@ -196,6 +224,7 @@ export default function Dashboard() {
             .select();
 
           console.log(data);
+
           alert("your page now is live!");
         } else {
           alert(" empty");
@@ -206,6 +235,37 @@ export default function Dashboard() {
     } else {
       alert("wong name choosen");
     }
+  };
+  const addReseauLink = async (fb: string) => {
+    let fbresult;
+    if (fb !== "undefinedundefined") {
+      fbresult = fb;
+    } else {
+      fbresult = null;
+    }
+    const { data, error } = await supabase
+      .from(" users_reseaux")
+      .insert({
+        facebook: fbresult,
+        youtube: "3",
+        x: value,
+        instagram: name,
+        pinterest: desc,
+        snapchat: "",
+        discord: "",
+        github: "",
+        onlyfans: "",
+        linkedIn: "",
+        tiktok: "",
+        reddit: "",
+        whatsApp: "",
+        telegram: "",
+        twitch: "",
+        quora: "",
+        medium: "",
+        soundCloud: "",
+      })
+      .select();
   };
 
   const onChange = (e: any) => {
@@ -423,93 +483,85 @@ export default function Dashboard() {
                 <Separator className="my-5" />
                 <p>add social link vertical? horizontal?</p>
 
-                <div>
-                  <h1>Dynamic List</h1>
-                  <button onClick={addItem}>Add Item</button>
+                <div className="mt-10">
                   <ul>
-                    {items.map((item) => (
+                    {items.map((item: any) => (
                       <li key={item.id}>
-                        <input
-                          type="text"
-                          value={
-                            inputs.find((input) => input.id === item.id)
-                              ?.label || ""
-                          }
-                          onChange={(e) =>
-                            handleLabelChange(item.id, e.target.value)
-                          }
-                          placeholder="Enter item label"
-                        />
-                        <input
+                        <p>
+                          {inputs.find((input) => input.id === item.id)
+                            ?.label || ""}
+                        </p>
+                        <Input
                           type="text"
                           value={
                             inputs.find((input) => input.id === item.id)
                               ?.value || ""
                           }
-                          onChange={(e) =>
-                            handleInputChange(item.id, e.target.value)
-                          }
-                          placeholder="Enter item name"
+                          onChange={(e) => {
+                            handleInputChange(item.id, e.target.value);
+                            handleLabelChange(item.id, labelselected);
+
+                            //addStringToArray(`${item.id}${item.name}`);
+                          }}
+                          placeholder="Enter Url social media link"
                         />
-                        <button onClick={() => handleSave(item.id)}>
-                          Save
-                        </button>
-                        <button onClick={() => handleDelete(item.id)}>
-                          Delete
-                        </button>
+                        <div className="flex items-center gap-2 my-2 end-3">
+                          <Button onClick={() => handleSave(item.id)}>
+                            Save
+                          </Button>
+
+                          <Button
+                            onClick={() => {
+                              handleDelete(item.id);
+                              // setId((prev) => prev - 1);
+                              //delete must be de bas en haut
+                              //remove the link to add
+                              console.log(labelselected);
+                              if (labelselected == "facebook link") {
+                                setFacebooklinkdisable(false);
+                              }
+                              if (labelselected == "instagram link") {
+                                setInstagramlinkdisable(false);
+                              }
+                              if (labelselected == "x link") {
+                                setXlinkdisable(false);
+                              }
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
                   <p>
                     All items:{" "}
                     {items
-                      .map((item) => `${item.label}: ${item.name}`)
+                      .map((item) => `${item.id}${item.name}`)
                       .filter(Boolean)
                       .join(", ")}
                   </p>
                 </div>
-
-                {facebookshow ? (
-                  <div className="my-2">
-                    <p>facebook link</p>
-                    <Input
-                      value={desc}
-                      maxLength={100}
-                      onChange={onChangedesc}
-                      placeholder="your social link"
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setFacebookshow(false);
-                      }}
-                    >
-                      <TrashIcon />
-                    </Button>
-                  </div>
-                ) : null}
-
-                <div className="my-2">
-                  <p>Instagram link</p>
-                  <Input
-                    value={desc}
-                    maxLength={100}
-                    onChange={onChangedesc}
-                    placeholder="your social link"
-                  />
-                </div>
-                <div className="my-2">
-                  <p>Youtube link</p>
-                  <Input
-                    value={desc}
-                    maxLength={100}
-                    onChange={onChangedesc}
-                    placeholder="your social link"
-                  />
-                </div>
+                <Button
+                  onClick={() => {
+                    /* items.map((item) => {
+                      //addStringToArray(`${item.id}${item.name}`);
+                    });*/
+                    console.log(`${items[0]?.id}${items[0]?.name}`);
+                    console.log(`${items[1]?.id}${items[1]?.name}`);
+                    console.log(`${items[2]?.id}${items[2]?.name}`);
+                    // console.log(reseauLinkToAdd[0].toString());
+                    //console.log(reseauLinkToAdd[1].toString());
+                    //console.log(reseauLinkToAdd[2].toString());
+                  }}
+                >
+                  show reseau link added
+                </Button>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline">Add social link</Button>
+                    <Button variant="outline">
+                      Add social link <PlusIcon />
+                    </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -526,20 +578,91 @@ export default function Dashboard() {
                               <Button
                                 variant="outline"
                                 className="mx-2 my-2"
+                                disabled={isfacebooklinkdisable}
                                 onClick={() => {
                                   console.log(
                                     "facebook selected,so it can be showing"
                                   );
-                                  setFacebookshow(true);
+
+                                  setlabelselected("facebook link");
+                                  setFacebooklinkdisable(true);
+                                  addItem();
                                 }}
                               >
                                 <FacebookIcon />
                               </Button>
                             </DialogClose>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
+                            <DialogClose asChild>
+                              <Button
+                                variant="outline"
+                                className="mx-2 my-2"
+                                disabled={isinstagramlinkdisable}
+                                onClick={() => {
+                                  console.log(
+                                    "facebook selected,so it can be showing"
+                                  );
+
+                                  setlabelselected("instagram link");
+                                  setInstagramlinkdisable(true);
+                                  addItem();
+                                }}
+                              >
+                                <InstagramIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="outline"
+                                className="mx-2 my-2"
+                                disabled={isXlinkdisable}
+                                onClick={() => {
+                                  console.log(
+                                    "facebook selected,so it can be showing"
+                                  );
+
+                                  setlabelselected("x link");
+                                  setXlinkdisable(true);
+                                  addItem();
+                                }}
+                              >
+                                <TwitterIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="outline"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  console.log(
+                                    "facebook selected,so it can be showing"
+                                  );
+
+                                  setlabelselected("twitch link");
+                                  setFacebooklinkdisable(true);
+                                  addItem();
+                                }}
+                              >
+                                <TwitchIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="outline"
+                                className="mx-2 my-2"
+                                disabled={isfacebooklinkdisable}
+                                onClick={() => {
+                                  console.log(
+                                    "facebook selected,so it can be showing"
+                                  );
+
+                                  setlabelselected("facebook link");
+                                  setFacebooklinkdisable(true);
+                                  addItem();
+                                }}
+                              >
+                                <SnailIcon />
+                              </Button>
+                            </DialogClose>
                             <Button className="mx-2 my-2">click</Button>
                             <Button className="mx-2 my-2">click</Button>
                             <Button className="mx-2 my-2">click</Button>
@@ -786,4 +909,21 @@ function AppearanceLayout() {
       <Button>click</Button>
     </div>
   );
+}
+async function checkStringAndAddLinkToReseauTable(str: string, word: string) {
+  const regex = new RegExp(`\\b${word}\\b`);
+  if (regex.test(str)) {
+  } else {
+    console.log(`Le mot "${word}" n'a pas été trouvé dans la chaîne.`);
+  }
+}
+//pour de decodage de la position
+function removeLeadingCharacter(str: string, charToRemove: string): string {
+  if (str.startsWith(charToRemove)) {
+    return str.slice(1);
+  }
+  return str;
+}
+function addStringToArray(str: string): void {
+  reseauLinkToAdd.push(str);
 }

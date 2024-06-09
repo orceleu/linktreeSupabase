@@ -40,9 +40,10 @@ interface ReseauxClick {
 
 export default function Page({ params }: { params: { slug: string } }) {
   // className={`bg-gradient-to-b from-[#3047f5] to-[#fc0101] w-full h-screen`}
-  const [table, setTable] = useState("");
+  const [urlId, setTable] = useState("");
   const [country, setCountrie] = useState<CountrieType[]>([]);
-  const [reseaux, setReseaux] = useState<Reseaux[]>([]);
+  //const [reseaux, setReseaux] = useState<Reseaux[]>([]);
+
   const [reseauxClick, setReseauxClick] = useState<ReseauxClick[]>([]);
 
   const [isfbnull, setFbnull] = useState(true);
@@ -55,6 +56,35 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [ispintnull, setpintnull] = useState(true);
   const [isdisconull, setdisconull] = useState(true);
   const [userNotFound, setUserNotfound] = useState(false);
+  const [reseaux, setReseaux] = useState<Reseaux[]>([
+    // Ajouter d'autres objets Reseaux ici si nécessaire
+  ]);
+  const [filteredArray, setFilteredArray] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Transformer l'objet en tableau de paires [clé, valeur]
+    const reseauxList: string[] = reseaux.flatMap((reseau) =>
+      Object.values(reseau)
+    );
+
+    // Trier les valeurs par ordre croissant en fonction du préfixe numérique
+    const sortedList = reseauxList.sort((a, b) => {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      return numA - numB;
+    });
+
+    // Mettre à jour l'état du tableau filtré
+    setFilteredArray(sortedList);
+  }, [reseaux]);
+
+  //appeler lors de lintegration de lurl ahref
+  function removeLeadingCharacter(str: string, charToRemove: string): string {
+    if (str.startsWith(charToRemove)) {
+      return str.slice(1);
+    }
+    return str;
+  }
 
   const fetchdata = async () => {
     const countriesWithCitiesQuery = supabase
@@ -64,7 +94,7 @@ export default function Page({ params }: { params: { slug: string } }) {
          userdesc
          `
       )
-      .eq("userurl", table);
+      .eq("userurl", urlId);
 
     type CountriesWithCities = QueryData<typeof countriesWithCitiesQuery>;
 
@@ -95,7 +125,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         pinterest,
         onlyfans`
       )
-      .eq("usersreseauxid", table);
+      .eq("usersreseauxid", urlId);
 
     type reseauxdata = QueryData<typeof reseauxdata>;
     const { data, error } = await reseauxdata;
@@ -148,7 +178,7 @@ export default function Page({ params }: { params: { slug: string } }) {
         pinterestclick,
         onlyfansclick`
       )
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
 
     type reseauxclickdata = QueryData<typeof reseauxclickdata>;
     const { data, error } = await reseauxclickdata;
@@ -166,42 +196,42 @@ export default function Page({ params }: { params: { slug: string } }) {
     const { error } = await supabase
       .from("usersreseauxclick")
       .update({ facebookclick: prevclick + 1 })
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
   };
   const updateYoutubeClick = async (initialclick: number) => {
     let prevclick = initialclick;
     const { error } = await supabase
       .from("usersreseauxclick")
       .update({ youtubeclick: prevclick + 1 })
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
   };
   const updateXClick = async (initialclick: number) => {
     let prevclick = initialclick;
     const { error } = await supabase
       .from("usersreseauxclick")
       .update({ xclick: prevclick + 1 })
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
   };
   const updateGithubClick = async (initialclick: number) => {
     let prevclick = initialclick;
     const { error } = await supabase
       .from("usersreseauxclick")
       .update({ githubclick: prevclick + 1 })
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
   };
   const updateInstagramClick = async (initialclick: number) => {
     let prevclick = initialclick;
     const { error } = await supabase
       .from("usersreseauxclick")
       .update({ instagramclick: prevclick + 1 })
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
   };
   const updatePinterestClick = async (initialclick: number) => {
     let prevclick = initialclick;
     const { error } = await supabase
       .from("usersreseauxclick")
       .update({ pinterestclick: prevclick + 1 })
-      .eq("usersreseauxidclick", table);
+      .eq("usersreseauxidclick", urlId);
   };
 
   useEffect(() => {
@@ -213,17 +243,48 @@ export default function Page({ params }: { params: { slug: string } }) {
       params.slug !== "private"
     ) {
       setTable(params.slug);
-      if (table !== "") {
+      if (urlId !== "") {
         fetchdata();
         fetchreseaux();
         fetchreseauxClick();
       }
     }
-  }, [table, reseaux[0]?.facebook]);
+  }, [urlId, reseaux[0]?.facebook]);
 
   return (
     <div className="bg-red-300">
       <br />
+      <div>
+        <h1>Filtered and Sorted Array</h1>
+        <ul>
+          {filteredArray.map((item, index) => {
+            // Ne rendre la div que si l'élément n'est pas vide
+            if (item) {
+              return (
+                <a
+                  href={`https://www.${item}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={index}
+                >
+                  <div
+                    className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
+                    onClick={() => {
+                      console.log("facebook clicked");
+                      updateFacebookClick(reseauxClick[0]?.facebookclick);
+                    }}
+                  >
+                    <div className="px-6 py-4">
+                      <div className="font-bold text-xl mb-2">{item}</div>
+                    </div>
+                  </div>
+                </a>
+              );
+            }
+            return null; // Ne rien rendre si l'élément est vide
+          })}
+        </ul>
+      </div>
       <Button variant="ghost" className="mx-2">
         <Share2Icon />
       </Button>
