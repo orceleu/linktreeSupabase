@@ -1,8 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { useRef } from "react";
 
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
+import Autoplay from "embla-carousel-autoplay";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 import { supabase } from "../supabase/supabaseInstance";
 import Link from "next/link";
@@ -26,6 +36,12 @@ interface Reseaux {
   pinterest: string;
   discord: string;
 }
+interface SiteUrl {
+  site1: string;
+  site2: string;
+  site3: string;
+  site4: string;
+}
 interface ReseauxClick {
   facebookclick: number;
   youtubeclick: number;
@@ -37,7 +53,12 @@ interface ReseauxClick {
   pinterestclick: number;
   discordclick: number;
 }
-
+interface Props {
+  img1: string;
+  img2: string;
+  img3: string;
+  img4: string;
+}
 export default function Page({ params }: { params: { slug: string } }) {
   // className={`bg-gradient-to-b from-[#3047f5] to-[#fc0101] w-full h-screen`}
   const [urlId, setTable] = useState("");
@@ -46,7 +67,7 @@ export default function Page({ params }: { params: { slug: string } }) {
 
   const [reseauxClick, setReseauxClick] = useState<ReseauxClick[]>([]);
 
-  const [isfbnull, setFbnull] = useState(true);
+  /* const [isfbnull, setFbnull] = useState(true);
   const [isytnull, setytnull] = useState(true);
   const [isignull, setignull] = useState(true);
   const [isxnull, setxnull] = useState(true);
@@ -54,16 +75,42 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [isgitnull, setgitnull] = useState(true);
   const [isonlynull, setonlynull] = useState(true);
   const [ispintnull, setpintnull] = useState(true);
-  const [isdisconull, setdisconull] = useState(true);
+  const [isdisconull, setdisconull] = useState(true);*/
   const [userNotFound, setUserNotfound] = useState(false);
-  const [reseaux, setReseaux] = useState<Reseaux[]>([
-    // Ajouter d'autres objets Reseaux ici si nécessaire
+  const [reseaux, setReseaux] = useState<Reseaux[]>([]);
+  const [siteUrl, setSiteUrl] = useState<SiteUrl[]>([
+    {
+      site1: "1handforhaiti.org;handforhaiti",
+      site2: "2site.com;support my work",
+      site3: "3site.com;my portfoliot",
+      site4: "4site.com;my shop",
+    },
   ]);
+  const [youtubeEmbededUrl, setYoutubeEmbededUrl] = useState<SiteUrl[]>([]);
   const [filteredArray, setFilteredArray] = useState<string[]>([]);
+  const [filteredSiteUrl, setFilteredSiteUrl] = useState<string[]>([]);
+  const [filteredYoutubeEmbeded, setFilteredYoutubeEmbeded] = useState<
+    string[]
+  >([]);
+  const [originalString, setOriginalString] = useState<string>(
+    "1mysite.com;Buy me a coffe"
+  );
+
+  //selectionne embedebvideo et siteUrlPlus_title separement en fonction supabase
+  // Fonction pour séparer la chaîne en deux parties à partir de l'indicateur ";"
+  const splitString = (str: string): [string, string] => {
+    const [firstPart, secondPart] = str.split(";");
+    return [firstPart, secondPart];
+  };
+
+  const [firstPart, secondPart] = splitString(originalString);
 
   useEffect(() => {
     // Transformer l'objet en tableau de paires [clé, valeur]
     const reseauxList: string[] = reseaux.flatMap((reseau) =>
+      Object.values(reseau)
+    );
+    const siteUrlList: string[] = siteUrl.flatMap((reseau) =>
       Object.values(reseau)
     );
 
@@ -73,9 +120,15 @@ export default function Page({ params }: { params: { slug: string } }) {
       const numB = parseInt(b, 10);
       return numA - numB;
     });
+    const sortedSiteUrlList = siteUrlList.sort((a, b) => {
+      const numA = parseInt(a, 10);
+      const numB = parseInt(b, 10);
+      return numA - numB;
+    });
 
     // Mettre à jour l'état du tableau filtré
     setFilteredArray(sortedList);
+    setFilteredSiteUrl(sortedSiteUrlList);
   }, [reseaux]);
 
   //appeler lors de lintegration de lurl ahref
@@ -133,7 +186,8 @@ export default function Page({ params }: { params: { slug: string } }) {
     const result: reseauxdata = data;
 
     setReseaux(result);
-    if (reseaux[0]?.facebook !== null && reseaux[0]?.facebook !== undefined) {
+
+    /*if (reseaux[0]?.facebook !== null && reseaux[0]?.facebook !== undefined) {
       setFbnull(false);
     }
     if (reseaux[0]?.youtube !== null && reseaux[0]?.youtube !== undefined) {
@@ -161,7 +215,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       setpintnull(false);
     }
 
-    console.log(isfbnull);
+    console.log(isfbnull);*/
   };
 
   const fetchreseauxClick = async () => {
@@ -252,52 +306,18 @@ export default function Page({ params }: { params: { slug: string } }) {
   }, [urlId, reseaux[0]?.facebook]);
 
   return (
-    <div className="bg-red-300">
-      <br />
-      <div>
-        <h1>Filtered and Sorted Array</h1>
-        <ul>
-          {filteredArray.map((item, index) => {
-            // Ne rendre la div que si l'élément n'est pas vide
-            if (item) {
-              return (
-                <a
-                  href={`https://www.${item}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  key={index}
-                >
-                  <div
-                    className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                    onClick={() => {
-                      console.log("facebook clicked");
-                      updateFacebookClick(reseauxClick[0]?.facebookclick);
-                    }}
-                  >
-                    <div className="px-6 py-4">
-                      <div className="font-bold text-xl mb-2">{item}</div>
-                    </div>
-                  </div>
-                </a>
-              );
-            }
-            return null; // Ne rien rendre si l'élément est vide
-          })}
-        </ul>
-      </div>
-      <Button variant="ghost" className="mx-2">
-        <Share2Icon />
-      </Button>
-      <br />
-      <br />
-      <br />
-      <div>
-        {userNotFound ? (
-          <>
-            <p>user not found</p>
-          </>
-        ) : (
-          <>
+    <>
+      <main className=" bg-black">
+        <Button variant="ghost" className="mx-2 my-2">
+          <Share2Icon />
+        </Button>
+
+        <div className="flex justify-center">
+          {userNotFound ? (
+            <>
+              <p>user not found</p>
+            </>
+          ) : (
             <div className="  flex justify-center ">
               <div className="grid  ">
                 <Image
@@ -306,181 +326,160 @@ export default function Page({ params }: { params: { slug: string } }) {
                   className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
                 />
                 <p className="text-xl text-center">{country[0]?.username}</p>
-                <p className="my-5 text-gray-700 text-center">
+                <p className="my-5 text-gray-700 text-center mx-10">
                   {country[0]?.userdesc}
                 </p>
-                <iframe
-                  width="560"
-                  height="315"
-                  src="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                ></iframe>
-                <div className="mx-10">
-                  <div>
-                    {isfbnull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.facebook}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px]  rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("facebook cliked");
-                            updateFacebookClick(reseauxClick[0]?.facebookclick);
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">
-                              facebook
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                  <div>
-                    {isytnull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.youtube}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("youtube cliked");
-                            updateYoutubeClick(reseauxClick[0]?.youtubeclick);
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">
-                              youtube
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                  <div>
-                    {isignull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.instagram}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("instagram cliked");
-                            updateInstagramClick(
-                              reseauxClick[0]?.instagramclick
-                            );
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">
-                              instagram
-                            </div>
-                          </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
+                <Carroussel
+                  img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
+                  img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
+                  img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
+                  img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
+                />
+                <div className="mt-10">
+                  {filteredArray.map((item, index) => {
+                    // Ne rendre la div que si l'élément n'est pas vide
+                    if (item) {
+                      let reseauxCardTitle = "";
+                      if (item.includes("facebook")) {
+                        reseauxCardTitle = "facebook";
+                      } else if (item.includes("youtube")) {
+                        reseauxCardTitle = "youtube";
+                      } else if (item.includes("pinterest")) {
+                        reseauxCardTitle = "pinterest";
+                      } else if (item.includes("x")) {
+                        reseauxCardTitle = "x";
+                      } else if (item.includes("instagram")) {
+                        reseauxCardTitle = "instagram";
+                      } else if (item.includes("onlyfan")) {
+                        reseauxCardTitle = "onlyfan";
+                      } else if (item.includes("snapchat")) {
+                        reseauxCardTitle = "snapchat";
+                      } else if (item.includes("discord")) {
+                        reseauxCardTitle = "discord";
+                      } else {
+                        reseauxCardTitle = "any";
+                      }
 
-                  <div>
-                    {isxnull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.x}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("X cliked");
-                            updateXClick(reseauxClick[0]?.xclick);
-                          }}
+                      return (
+                        <a
+                          href={`https://www.${removeLeadingCharacter(
+                            item,
+                            item.charAt(0)
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          key={index}
                         >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">X</div>
-                          </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                  <div>
-                    {isgitnull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.github}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("Github cliked");
-                            updateGithubClick(reseauxClick[0]?.githubclick);
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">Github</div>
-                          </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                  <div>
-                    {ispintnull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.pinterest}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("pinterest cliked");
-                            updatePinterestClick(
-                              reseauxClick[0]?.pinterestclick
-                            );
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">
-                              Pinterest
+                          <div
+                            className="lg:max-w-[1000px] rounded-[50px] overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
+                            onClick={() => {
+                              // console.log(item);
+
+                              if (item.includes("facebook")) {
+                                console.log("facebook clicked");
+                                updateFacebookClick(
+                                  reseauxClick[0]?.facebookclick
+                                );
+                              } else if (item.includes("instagram")) {
+                                console.log("instagram cliked");
+                                updateInstagramClick(
+                                  reseauxClick[0]?.instagramclick
+                                );
+                              } else if (item.includes("youtube")) {
+                                console.log("youtube cliked");
+                                updateYoutubeClick(
+                                  reseauxClick[0]?.youtubeclick
+                                );
+                              } else if (item.includes("x")) {
+                                console.log("x cliked");
+                                updateXClick(reseauxClick[0]?.xclick);
+                              } else if (item.includes("pinterest")) {
+                                console.log("pinterest cliked");
+                                updatePinterestClick(
+                                  reseauxClick[0]?.pinterestclick
+                                );
+                              }
+
+                              // updateFacebookClick(reseauxClick[0]?.facebookclick);
+                            }}
+                          >
+                            <div className="px-6 py-4">
+                              <p className="font-bold text-xl mx-auto my-auto text-center">
+                                {reseauxCardTitle}
+                              </p>
                             </div>
                           </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
-
-                  <div>
-                    {isonlynull ? null : (
-                      <a
-                        href={`https://www.${reseaux[0]?.onlyfans}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div
-                          className="lg:max-w-[1000px] rounded overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                          onClick={() => {
-                            console.log("Only cliked");
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">Only</div>
-                          </div>
-                        </div>
-                      </a>
-                    )}
-                  </div>
+                        </a>
+                      );
+                    }
+                    return null; // Ne rien rendre si l'élément est vide
+                  })}
                 </div>
                 <br />
-                <br />
-                <br />
+
+                <div className="mt-10">
+                  {filteredSiteUrl.map((item, index) => {
+                    // Ne rendre la div que si l'élément n'est pas vide
+                    if (item) {
+                      let removedFirstChar = removeLeadingCharacter(
+                        item,
+                        item.charAt(0)
+                      );
+                      const [firstPart, secondPart] =
+                        splitString(removedFirstChar);
+
+                      return (
+                        <a
+                          href={`https://www.${firstPart}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          key={index}
+                        >
+                          <div
+                            className="lg:max-w-[1000px] rounded-[50px] overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
+                            onClick={() => {
+                              // console.log(item);
+
+                              if (item.includes("facebook")) {
+                                console.log("facebook clicked");
+                                updateFacebookClick(
+                                  reseauxClick[0]?.facebookclick
+                                );
+                              } else if (item.includes("instagram")) {
+                                console.log("instagram cliked");
+                                updateInstagramClick(
+                                  reseauxClick[0]?.instagramclick
+                                );
+                              } else if (item.includes("youtube")) {
+                                console.log("youtube cliked");
+                                updateYoutubeClick(
+                                  reseauxClick[0]?.youtubeclick
+                                );
+                              } else if (item.includes("x")) {
+                                console.log("x cliked");
+                                updateXClick(reseauxClick[0]?.xclick);
+                              } else if (item.includes("pinterest")) {
+                                console.log("pinterest cliked");
+                                updatePinterestClick(
+                                  reseauxClick[0]?.pinterestclick
+                                );
+                              }
+
+                              // updateFacebookClick(reseauxClick[0]?.facebookclick);
+                            }}
+                          >
+                            <div className="px-6 py-4">
+                              <p className="font-bold text-xl mx-auto my-auto text-center">
+                                {secondPart}
+                              </p>
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    }
+                    return null; // Ne rien rendre si l'élément est vide
+                  })}
+                </div>
                 <br />
                 <br />
               </div>
@@ -492,9 +491,64 @@ export default function Page({ params }: { params: { slug: string } }) {
                 create your ssply.bio
               </Button>
             </div>
-          </>
-        )}
+          )}
+        </div>
+      </main>
+    </>
+  );
+}
+const Carroussel: React.FC<Props> = ({ img1, img2, img3, img4 }) => {
+  const plugin = useRef(Autoplay({ delay: 2000, stopOnInteraction: true }));
+
+  const person = [
+    {
+      picture: img1,
+    },
+    {
+      picture: img2,
+    },
+    {
+      picture: img3,
+    },
+    {
+      picture: img4,
+    },
+  ];
+  return (
+    <div>
+      <div className="flex justify-center">
+        <Carousel
+          plugins={[plugin.current]}
+          className="w-full max-w-xs "
+          onMouseEnter={plugin.current.stop}
+          onMouseLeave={plugin.current.reset}
+        >
+          <CarouselContent>
+            {person.map((_img, index) => (
+              //https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-
+              <CarouselItem key={index} className="w-[1000px]">
+                <div className="p-1 w-auto">
+                  <Card className="bg-black w-auto">
+                    <CardContent className="flex aspect-square items-center justify-center p-6 w-full">
+                      <iframe
+                        key={index}
+                        width="mx-auto"
+                        height="mx-auto"
+                        src={`${_img.picture}`}
+                        title="YouTube video player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      ></iframe>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
     </div>
   );
-}
+};
