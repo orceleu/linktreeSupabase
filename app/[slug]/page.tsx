@@ -15,16 +15,18 @@ import {
 } from "@/components/ui/carousel";
 
 import { supabase } from "../supabase/supabaseInstance";
-import Link from "next/link";
+import { HexColorPicker } from "react-colorful";
 import Image from "next/image";
 import claireremovebg from "../../public/claireremovebg.png";
 import { Button } from "@/components/ui/button";
 import { Share2Icon, ShareIcon } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 interface CountrieType {
   username: string;
   userdesc: string;
 }
-
+import "react-spotify-embed";
+import { Spotify } from "react-spotify-embed";
 interface Reseaux {
   facebook: string;
   youtube: string;
@@ -41,6 +43,12 @@ interface SiteUrl {
   site2: string;
   site3: string;
   site4: string;
+  site5: string;
+  site6: string;
+  site7: string;
+  site8: string;
+  site9: string;
+  site10: string;
 }
 interface ReseauxClick {
   facebookclick: number;
@@ -59,11 +67,23 @@ interface Props {
   img3: string;
   img4: string;
 }
+interface Appareance {
+  mainBackground: string;
+  nameColor: string;
+  descColor: string;
+  cardColor: string;
+  titleCardColor: string;
+  outlinedCarcColor: string;
+  bordersRadius: string;
+}
 export default function Page({ params }: { params: { slug: string } }) {
   // className={`bg-gradient-to-b from-[#3047f5] to-[#fc0101] w-full h-screen`}
   const [urlId, setTable] = useState("");
   const [country, setCountrie] = useState<CountrieType[]>([]);
   //const [reseaux, setReseaux] = useState<Reseaux[]>([]);
+  const [color1, setColor] = useState("#aabbcc");
+  const [color2, setColor2] = useState("#0000ff");
+  const [imageUrl, setImageUrl] = useState("https://via.placeholder.com/600"); // URL initiale de l'image
 
   const [reseauxClick, setReseauxClick] = useState<ReseauxClick[]>([]);
 
@@ -84,8 +104,27 @@ export default function Page({ params }: { params: { slug: string } }) {
       site2: "2site.com;support my work",
       site3: "3site.com;my portfoliot",
       site4: "4site.com;my shop",
+      site5: "5handforhaiti.org;handforhaiti",
+      site6: "7site.com;support my work",
+      site7: "10site.com;my portfoliot",
+      site8: "6site.com;my shop",
+      site9: "8handforhaiti.org;handforhaiti",
+      site10: "9site.com;support my work",
     },
   ]);
+  const [appareance, setAppareance] = useState<Appareance[]>([
+    //probleme de boucle ,l'index premier actualise le rendu et les autre n'ont pas le temp de s'affecter
+    {
+      mainBackground: "#7143dd",
+      nameColor: "#87e6c1",
+      descColor: "#87e6c1",
+      cardColor: "#87e6c1",
+      titleCardColor: "#e60a0a",
+      outlinedCarcColor: "#87e6c1",
+      bordersRadius: "10px",
+    },
+  ]);
+  const bg = "87e6c1";
   const [youtubeEmbededUrl, setYoutubeEmbededUrl] = useState<SiteUrl[]>([]);
   const [filteredArray, setFilteredArray] = useState<string[]>([]);
   const [filteredSiteUrl, setFilteredSiteUrl] = useState<string[]>([]);
@@ -103,9 +142,9 @@ export default function Page({ params }: { params: { slug: string } }) {
     return [firstPart, secondPart];
   };
 
-  const [firstPart, secondPart] = splitString(originalString);
-
   useEffect(() => {
+    console.log(appareance[0].mainBackground);
+
     // Transformer l'objet en tableau de paires [clé, valeur]
     const reseauxList: string[] = reseaux.flatMap((reseau) =>
       Object.values(reseau)
@@ -304,201 +343,282 @@ export default function Page({ params }: { params: { slug: string } }) {
       }
     }
   }, [urlId, reseaux[0]?.facebook]);
-
+  /* <Carroussel
+                img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
+                img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
+                img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
+                img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
+              />*/
   return (
-    <>
-      <main className=" bg-black">
-        <Button variant="ghost" className="mx-2 my-2">
-          <Share2Icon />
-        </Button>
-
-        <div className="flex justify-center">
-          {userNotFound ? (
-            <>
-              <p>user not found</p>
-            </>
-          ) : (
-            <div className="  flex justify-center ">
-              <div className="grid  ">
-                <Image
-                  src={claireremovebg}
-                  alt=""
-                  className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
+    <main
+      style={{
+        background: `linear-gradient(45deg, ${color1}, ${color2})`,
+        backgroundImage: `url(${imageUrl})`,
+      }}
+    >
+      <HexColorPicker color={color1} onChange={setColor} />;
+      <HexColorPicker color={color2} onChange={setColor2} />;
+      <Button variant="ghost" className="mx-2 my-2">
+        <Share2Icon />
+      </Button>
+      <div className="flex justify-center">
+        {userNotFound ? (
+          <>
+            <p>user not found</p>
+          </>
+        ) : (
+          <div className="  flex justify-center ">
+            <div className="grid  ">
+              <Image
+                src={claireremovebg}
+                alt=""
+                className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
+              />
+              <p
+                style={{ color: appareance[0].nameColor }}
+                className={`text-xl  text-center`}
+              >
+                {country[0]?.username}
+              </p>
+              <p
+                style={{ color: appareance[0].descColor }}
+                className={`my-5 text-center mx-10`}
+              >
+                {country[0]?.userdesc}
+              </p>
+              <Carroussel
+                img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
+                img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
+                img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
+                img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
+              />
+              <div className="flex justify-center my-5">
+                <Spotify
+                  style={{
+                    height: 500,
+                    background: appareance[0].mainBackground,
+                  }}
+                  className="w-full mx-5 "
+                  link="https://open.spotify.com/album/0fUy6IdLHDpGNwavIlhEsl?si=mTiITmlHQpaGkoivGTv8Jw"
                 />
-                <p className="text-xl text-center">{country[0]?.username}</p>
-                <p className="my-5 text-gray-700 text-center mx-10">
-                  {country[0]?.userdesc}
-                </p>
-                <Carroussel
-                  img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
-                  img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
-                  img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
-                  img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
-                />
-                <div className="mt-10">
-                  {filteredArray.map((item, index) => {
-                    // Ne rendre la div que si l'élément n'est pas vide
-                    if (item) {
-                      let reseauxCardTitle = "";
-                      if (item.includes("facebook")) {
-                        reseauxCardTitle = "facebook";
-                      } else if (item.includes("youtube")) {
-                        reseauxCardTitle = "youtube";
-                      } else if (item.includes("pinterest")) {
-                        reseauxCardTitle = "pinterest";
-                      } else if (item.includes("x")) {
-                        reseauxCardTitle = "x";
-                      } else if (item.includes("instagram")) {
-                        reseauxCardTitle = "instagram";
-                      } else if (item.includes("onlyfan")) {
-                        reseauxCardTitle = "onlyfan";
-                      } else if (item.includes("snapchat")) {
-                        reseauxCardTitle = "snapchat";
-                      } else if (item.includes("discord")) {
-                        reseauxCardTitle = "discord";
-                      } else {
-                        reseauxCardTitle = "any";
-                      }
-
-                      return (
-                        <a
-                          href={`https://www.${removeLeadingCharacter(
-                            item,
-                            item.charAt(0)
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          key={index}
-                        >
-                          <div
-                            className="lg:max-w-[1000px] rounded-[50px] overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                            onClick={() => {
-                              // console.log(item);
-
-                              if (item.includes("facebook")) {
-                                console.log("facebook clicked");
-                                updateFacebookClick(
-                                  reseauxClick[0]?.facebookclick
-                                );
-                              } else if (item.includes("instagram")) {
-                                console.log("instagram cliked");
-                                updateInstagramClick(
-                                  reseauxClick[0]?.instagramclick
-                                );
-                              } else if (item.includes("youtube")) {
-                                console.log("youtube cliked");
-                                updateYoutubeClick(
-                                  reseauxClick[0]?.youtubeclick
-                                );
-                              } else if (item.includes("x")) {
-                                console.log("x cliked");
-                                updateXClick(reseauxClick[0]?.xclick);
-                              } else if (item.includes("pinterest")) {
-                                console.log("pinterest cliked");
-                                updatePinterestClick(
-                                  reseauxClick[0]?.pinterestclick
-                                );
-                              }
-
-                              // updateFacebookClick(reseauxClick[0]?.facebookclick);
-                            }}
-                          >
-                            <div className="px-6 py-4">
-                              <p className="font-bold text-xl mx-auto my-auto text-center">
-                                {reseauxCardTitle}
-                              </p>
-                            </div>
-                          </div>
-                        </a>
-                      );
-                    }
-                    return null; // Ne rien rendre si l'élément est vide
-                  })}
-                </div>
-                <br />
-
-                <div className="mt-10">
-                  {filteredSiteUrl.map((item, index) => {
-                    // Ne rendre la div que si l'élément n'est pas vide
-                    if (item) {
-                      let removedFirstChar = removeLeadingCharacter(
-                        item,
-                        item.charAt(0)
-                      );
-                      const [firstPart, secondPart] =
-                        splitString(removedFirstChar);
-
-                      return (
-                        <a
-                          href={`https://www.${firstPart}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          key={index}
-                        >
-                          <div
-                            className="lg:max-w-[1000px] rounded-[50px] overflow-hidden shadow-lg bg-emerald-200 m-4 cursor-pointer hover:bg-slate-400"
-                            onClick={() => {
-                              // console.log(item);
-
-                              if (item.includes("facebook")) {
-                                console.log("facebook clicked");
-                                updateFacebookClick(
-                                  reseauxClick[0]?.facebookclick
-                                );
-                              } else if (item.includes("instagram")) {
-                                console.log("instagram cliked");
-                                updateInstagramClick(
-                                  reseauxClick[0]?.instagramclick
-                                );
-                              } else if (item.includes("youtube")) {
-                                console.log("youtube cliked");
-                                updateYoutubeClick(
-                                  reseauxClick[0]?.youtubeclick
-                                );
-                              } else if (item.includes("x")) {
-                                console.log("x cliked");
-                                updateXClick(reseauxClick[0]?.xclick);
-                              } else if (item.includes("pinterest")) {
-                                console.log("pinterest cliked");
-                                updatePinterestClick(
-                                  reseauxClick[0]?.pinterestclick
-                                );
-                              }
-
-                              // updateFacebookClick(reseauxClick[0]?.facebookclick);
-                            }}
-                          >
-                            <div className="px-6 py-4">
-                              <p className="font-bold text-xl mx-auto my-auto text-center">
-                                {secondPart}
-                              </p>
-                            </div>
-                          </div>
-                        </a>
-                      );
-                    }
-                    return null; // Ne rien rendre si l'élément est vide
-                  })}
-                </div>
-                <br />
-                <br />
               </div>
 
-              <Button
-                variant="outline"
-                className="rounded-[50px] fixed bottom-4 sm:mx-auto lg:end-5"
-              >
-                create your ssply.bio
-              </Button>
+              <div className="sm:mt-3 md:mt-5">
+                {filteredArray.map((item, index) => {
+                  // Ne rendre la div que si l'élément n'est pas vide
+                  if (item) {
+                    let reseauxCardTitle = "";
+                    if (item.includes("facebook")) {
+                      reseauxCardTitle = "facebook";
+                    } else if (item.includes("youtube")) {
+                      reseauxCardTitle = "youtube";
+                    } else if (item.includes("pinterest")) {
+                      reseauxCardTitle = "pinterest";
+                    } else if (item.includes("x")) {
+                      reseauxCardTitle = "x";
+                    } else if (item.includes("instagram")) {
+                      reseauxCardTitle = "instagram";
+                    } else if (item.includes("onlyfan")) {
+                      reseauxCardTitle = "onlyfan";
+                    } else if (item.includes("snapchat")) {
+                      reseauxCardTitle = "snapchat";
+                    } else if (item.includes("discord")) {
+                      reseauxCardTitle = "discord";
+                    } else {
+                      reseauxCardTitle = "any";
+                    }
+
+                    return (
+                      <a
+                        href={`https://www.${removeLeadingCharacter(
+                          item,
+                          item.charAt(0)
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        key={index}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: appareance[0].cardColor,
+                            borderRadius: appareance[0].bordersRadius,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              appareance[0].mainBackground;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              appareance[0].cardColor;
+                          }}
+                          className={`lg:max-w-[1000px]  overflow-hidden shadow-lg  m-4 cursor-pointer `}
+                          onClick={() => {
+                            // console.log(item);
+
+                            if (item.includes("facebook")) {
+                              console.log("facebook clicked");
+                              updateFacebookClick(
+                                reseauxClick[0]?.facebookclick
+                              );
+                            } else if (item.includes("instagram")) {
+                              console.log("instagram cliked");
+                              updateInstagramClick(
+                                reseauxClick[0]?.instagramclick
+                              );
+                            } else if (item.includes("youtube")) {
+                              console.log("youtube cliked");
+                              updateYoutubeClick(reseauxClick[0]?.youtubeclick);
+                            } else if (item.includes("x")) {
+                              console.log("x cliked");
+                              updateXClick(reseauxClick[0]?.xclick);
+                            } else if (item.includes("pinterest")) {
+                              console.log("pinterest cliked");
+                              updatePinterestClick(
+                                reseauxClick[0]?.pinterestclick
+                              );
+                            }
+
+                            // updateFacebookClick(reseauxClick[0]?.facebookclick);
+                          }}
+                        >
+                          <div className="px-6 py-4">
+                            <p
+                              style={{ color: appareance[0].titleCardColor }}
+                              className={`font-bold text-xl  mx-auto my-auto text-center`}
+                            >
+                              {reseauxCardTitle}
+                            </p>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  }
+                  return null; // Ne rien rendre si l'élément est vide
+                })}
+              </div>
+              <br />
+
+              <div className="mt-10">
+                {filteredSiteUrl.map((item, index) => {
+                  // Ne rendre la div que si l'élément n'est pas vide
+                  if (item) {
+                    let removedFirstChar = removeLeadingCharacter(
+                      item,
+                      item.charAt(0)
+                    );
+                    const [firstPart, secondPart] =
+                      splitString(removedFirstChar);
+
+                    return (
+                      <a
+                        href={`https://www.${firstPart}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        key={index}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: appareance[0].cardColor,
+                            borderRadius: appareance[0].bordersRadius,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              appareance[0].mainBackground;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              appareance[0].cardColor;
+                          }}
+                          className={`lg:max-w-[1000px]   overflow-hidden shadow-lg   m-4 cursor-pointer `}
+                          onClick={() => {
+                            // console.log(item);
+
+                            if (item.includes("facebook")) {
+                              console.log("facebook clicked");
+                              updateFacebookClick(
+                                reseauxClick[0]?.facebookclick
+                              );
+                            } else if (item.includes("instagram")) {
+                              console.log("instagram cliked");
+                              updateInstagramClick(
+                                reseauxClick[0]?.instagramclick
+                              );
+                            } else if (item.includes("youtube")) {
+                              console.log("youtube cliked");
+                              updateYoutubeClick(reseauxClick[0]?.youtubeclick);
+                            } else if (item.includes("x")) {
+                              console.log("x cliked");
+                              updateXClick(reseauxClick[0]?.xclick);
+                            } else if (item.includes("pinterest")) {
+                              console.log("pinterest cliked");
+                              updatePinterestClick(
+                                reseauxClick[0]?.pinterestclick
+                              );
+                            }
+
+                            // updateFacebookClick(reseauxClick[0]?.facebookclick);
+                          }}
+                        >
+                          <div className="px-6 py-4">
+                            <p
+                              style={{
+                                color: appareance[0].titleCardColor,
+                              }}
+                              className={`font-bold text-xl  mx-auto my-auto text-center`}
+                            >
+                              {secondPart}
+                            </p>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  }
+                  return null; // Ne rien rendre si l'élément est vide
+                })}
+              </div>
+              <br />
+              <br />
             </div>
-          )}
-        </div>
-      </main>
-    </>
+
+            <Button
+              variant="outline"
+              className="rounded-[50px] fixed bottom-4 sm:mx-auto lg:end-5"
+            >
+              create your ssply.bio
+            </Button>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
 const Carroussel: React.FC<Props> = ({ img1, img2, img3, img4 }) => {
   const plugin = useRef(Autoplay({ delay: 2000, stopOnInteraction: true }));
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const [windowsizeybfinal, setWindowSizeybfinal] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    if (windowSize.width < 620) {
+      setWindowSizeybfinal(250);
+    } else {
+      setWindowSizeybfinal(520);
+    }
+    window.addEventListener("resize", handleResize);
+
+    // Nettoyer l'écouteur d'événement lors du démontage du composant
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const person = [
     {
@@ -515,40 +635,36 @@ const Carroussel: React.FC<Props> = ({ img1, img2, img3, img4 }) => {
     },
   ];
   return (
-    <div>
-      <div className="flex justify-center">
-        <Carousel
-          plugins={[plugin.current]}
-          className="w-full max-w-xs "
-          onMouseEnter={plugin.current.stop}
-          onMouseLeave={plugin.current.reset}
-        >
-          <CarouselContent>
-            {person.map((_img, index) => (
-              //https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-
-              <CarouselItem key={index} className="w-[1000px]">
-                <div className="p-1 w-auto">
-                  <Card className="bg-black w-auto">
-                    <CardContent className="flex aspect-square items-center justify-center p-6 w-full">
-                      <iframe
-                        key={index}
-                        width="mx-auto"
-                        height="mx-auto"
-                        src={`${_img.picture}`}
-                        title="YouTube video player"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                      ></iframe>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </div>
+    <div className="flex justify-center ">
+      <Carousel
+        plugins={[plugin.current]}
+        className={`w-[${windowsizeybfinal}px] max-w-[520px]`}
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.reset}
+      >
+        <CarouselContent>
+          {person.map((_img, index) => (
+            //https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-
+            <CarouselItem key={index}>
+              <div className="bg-black ">
+                <iframe
+                  key={index}
+                  width={windowsizeybfinal}
+                  height="mx-auto"
+                  src={`${_img.picture}`}
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <br />
+              <br />
+
+              <Separator />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </div>
   );
 };
