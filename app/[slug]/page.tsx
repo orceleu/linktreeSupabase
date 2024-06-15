@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/carousel";
 
 import { supabase } from "../supabase/supabaseInstance";
-import { HexColorPicker } from "react-colorful";
+import {
+  HexColorPicker,
+  RgbaColorPicker,
+  RgbaStringColorPicker,
+} from "react-colorful";
 import Image from "next/image";
 import claireremovebg from "../../public/claireremovebg.png";
 import { Button } from "@/components/ui/button";
@@ -81,8 +85,10 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [urlId, setTable] = useState("");
   const [country, setCountrie] = useState<CountrieType[]>([]);
   //const [reseaux, setReseaux] = useState<Reseaux[]>([]);
-  const [color1, setColor] = useState("#aabbcc");
-  const [color2, setColor2] = useState("#0000ff");
+  const [color1, setColor] = useState("");
+  const [color2, setColor2] = useState("");
+  const [color3, setColor3] = useState("");
+
   const [imageUrl, setImageUrl] = useState("https://via.placeholder.com/600"); // URL initiale de l'image
 
   const [reseauxClick, setReseauxClick] = useState<ReseauxClick[]>([]);
@@ -115,15 +121,29 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [appareance, setAppareance] = useState<Appareance[]>([
     //probleme de boucle ,l'index premier actualise le rendu et les autre n'ont pas le temp de s'affecter
     {
-      mainBackground: "#7143dd",
-      nameColor: "#87e6c1",
-      descColor: "#87e6c1",
-      cardColor: "#87e6c1",
-      titleCardColor: "#e60a0a",
-      outlinedCarcColor: "#87e6c1",
+      mainBackground: "rgba(45, 162, 152, 0.41)",
+      nameColor: "rgba(45, 162, 152, 0.41)",
+      descColor: "rgba(0, 0, 0, 1)",
+      cardColor: "rgba(45, 162, 152, 0.41)",
+      titleCardColor: "rgba(0, 0, 0, 1)",
+      outlinedCarcColor: "rgba(0, 0, 0, 1)",
       bordersRadius: "10px",
     },
   ]);
+  let simpleAppareance: Appareance[] = [
+    {
+      mainBackground: "rgba(45, 162, 152, 0.41)",
+      nameColor: "rgba(45, 162, 152, 0.41)",
+      descColor: "rgba(45, 162, 152, 0.41)",
+      cardColor: "rgba(45, 162, 152, 0.41)",
+      titleCardColor: "rgba(45, 162, 152, 0.41)",
+      outlinedCarcColor: "rgba(45, 162, 152, 0.41)",
+      bordersRadius: "40px",
+    },
+  ];
+  function changeappareance() {
+    setAppareance(simpleAppareance);
+  }
   const bg = "87e6c1";
   const [youtubeEmbededUrl, setYoutubeEmbededUrl] = useState<SiteUrl[]>([]);
   const [filteredArray, setFilteredArray] = useState<string[]>([]);
@@ -356,8 +376,28 @@ export default function Page({ params }: { params: { slug: string } }) {
         backgroundImage: `url(${imageUrl})`,
       }}
     >
-      <HexColorPicker color={color1} onChange={setColor} />;
-      <HexColorPicker color={color2} onChange={setColor2} />;
+      <RgbaStringColorPicker color={color1} onChange={setColor} />;
+      <RgbaStringColorPicker color={color2} onChange={setColor2} />;
+      <RgbaStringColorPicker color={color3} onChange={setColor3} />
+      <p>{color3}</p>
+      <div>
+        <p style={{ fontFamily: "Roboto, sans-serif" }}>
+          Ceci est un paragraphe avec la police Roboto.
+        </p>
+        <p style={{ fontFamily: "Open Sans, sans-serif" }}>
+          Ceci est un paragraphe avec la police Open Sans.
+        </p>
+        <p style={{ fontFamily: "Lobster, cursive" }}>
+          Ceci est un paragraphe avec la police Lobster.
+        </p>
+        <Button
+          onClick={() => {
+            changeappareance();
+          }}
+        >
+          change appareance
+        </Button>
+      </div>
       <Button variant="ghost" className="mx-2 my-2">
         <Share2Icon />
       </Button>
@@ -484,7 +524,7 @@ export default function Page({ params }: { params: { slug: string } }) {
                           <div className="px-6 py-4">
                             <p
                               style={{ color: appareance[0].titleCardColor }}
-                              className={`font-bold text-xl  mx-auto my-auto text-center`}
+                              className={`font-bold text-xl   mx-auto my-auto text-center`}
                             >
                               {reseauxCardTitle}
                             </p>
@@ -518,16 +558,17 @@ export default function Page({ params }: { params: { slug: string } }) {
                       >
                         <div
                           style={{
-                            backgroundColor: appareance[0].cardColor,
+                            backgroundColor: color3,
                             borderRadius: appareance[0].bordersRadius,
+
+                            border: `2px solid ${appareance[0].outlinedCarcColor}`,
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor =
                               appareance[0].mainBackground;
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              appareance[0].cardColor;
+                            e.currentTarget.style.backgroundColor = color3;
                           }}
                           className={`lg:max-w-[1000px]   overflow-hidden shadow-lg   m-4 cursor-pointer `}
                           onClick={() => {
