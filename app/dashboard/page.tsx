@@ -2,11 +2,20 @@
 import { useRouter } from "next/navigation";
 
 import { supabaseBrowserClient, supabase } from "../supabase/supabaseInstance";
-import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragEndEvent,
+  useSensor,
+  closestCenter,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   useSortable,
+  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -72,16 +81,45 @@ import {
   VideotapeIcon,
   ViewIcon,
 } from "lucide-react";
-
+import { UniqueIdentifier } from "@dnd-kit/core";
 interface Itemdnd {
-  id: string;
-  content: string;
+  is_active: boolean;
+  position: number;
+  card_name: string;
+  site_url: string;
+  photo_url: string;
+  click: number;
+  for_link_url: string;
 }
 
-const initialItems: Itemdnd[] = [
-  { id: "1", content: "Youtube" },
-  { id: "2", content: "Facebook" },
-  { id: "3", content: "Instagram" },
+const initialItemsUserSite: Itemdnd[] = [
+  {
+    is_active: true,
+    position: 0,
+    card_name: "name1",
+    site_url: "google.com/1",
+    photo_url: "photo.com",
+    click: 23,
+    for_link_url: "orceleuler",
+  },
+  {
+    is_active: true,
+    position: 1,
+    card_name: "name2",
+    site_url: "google.com/2",
+    photo_url: "photo.com",
+    click: 23,
+    for_link_url: "orceleuler",
+  },
+  {
+    is_active: true,
+    position: 2,
+    card_name: "name3",
+    site_url: "google.com/3",
+    photo_url: "photo.com",
+    click: 23,
+    for_link_url: "orceleuler",
+  },
 ];
 
 interface UserType {
@@ -107,6 +145,16 @@ interface LinkRetriv {
   daily_click: number;
   link_url: string;
 }
+interface ReseauxData {
+  is_active: boolean;
+  position: number;
+  card_name: string;
+  reseaux_url: string;
+  photo_url: string;
+  click: number;
+  for_link_url: string;
+}
+
 const reseauLinkToAdd: string[] = [];
 
 export default function Dashboard() {
@@ -131,7 +179,7 @@ export default function Dashboard() {
   const [paymentData, setPaymentData] = useState(null);
   const userId = useRef("");
   const [yourlink, setyourlink] = useState<LinkRetriv[]>([]);
-  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>(initialItems);
+  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>(initialItemsUserSite);
 
   const [buttonlayoutShow, setbuttonLayoutShow] = useState(false);
   const [gridlayoutShow, setgridLayoutShow] = useState(false);
@@ -139,24 +187,32 @@ export default function Dashboard() {
   const [isHome, setHome] = useState(true);
   const [isanalytics, setAnalytics] = useState(false);
   const [isshortlink, setshortlink] = useState(false);
-  const handleDragEnd = (event: DragEndEvent) => {
+  const newCardReseauxTablePos = useRef<Itemdnd[]>([]);
+  //url user selectionne
+  const selectedUrl = useRef("*");
+
+  const handleDragEnd = (event: any) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      setItemsdnd((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        let newItems = arrayMove(items, oldIndex, newIndex);
+    if (active.id !== over.id) {
+      const oldIndex = itemsdnd.findIndex(
+        (item) => item.position === active.id
+      );
+      const newIndex = itemsdnd.findIndex((item) => item.position === over.id);
 
-        // Log positions and new data to console
-        console.log("Position:", newIndex);
-        console.log("New Items:", newItems[newIndex].content);
-        return newItems;
-      });
+      const newItems: any = arrayMove(itemsdnd, oldIndex, newIndex).map(
+        (item, index) => ({
+          ...item,
+          position: index,
+        })
+      );
+
+      setItemsdnd(newItems);
+      console.log(newItems);
     }
   };
   //1---supabase postgres functions
-  const selectedUrl = useRef("betelgeuse");
+
   //donne tout les liens cree par les users
   const fetchAllLink = async () => {
     const { data, error } = await supabase
@@ -249,8 +305,10 @@ export default function Dashboard() {
             link_url: value,
             for_users_id: makeGuid(userId.current),
           });
-
+          if (error) console.log(error);
           console.log(data);
+
+          // addReseauxLink();
 
           alert("your page now is live!");
         } else {
@@ -263,27 +321,32 @@ export default function Dashboard() {
       alert("wong name choosen");
     }
   };
-  const addReseauxLink = async (
-    is_active: boolean,
-    position: number,
-    card_name: string,
-    reseaux_url: string,
-    photo_url: string,
-    click: number,
-    for_link_url: string
-  ) => {
+  const addReseauxLink = async () => {
+    let newCardReseauxTablePositon1: ReseauxData[] = [
+      {
+        is_active: true,
+        position: 1,
+        card_name: "card name",
+        reseaux_url: "google.com/5",
+        photo_url: "photo.com",
+        click: 1,
+        for_link_url: selectedUrl.current,
+      },
+      {
+        is_active: true,
+        position: 2,
+        card_name: "card name",
+        reseaux_url: "google.com/6",
+        photo_url: "photo.com",
+        click: 1,
+        for_link_url: selectedUrl.current,
+      },
+    ];
     const { data, error } = await supabase
-      .from(" users_reseaux")
-      .insert({
-        is_active: is_active,
-        position: position,
-        card_name: card_name,
-        reseaux_url: reseaux_url,
-        photo_url: photo_url,
-        click: click,
-        for_link_url: for_link_url,
-      })
-      .select();
+      .from("users_reseaux")
+      .insert(newCardReseauxTablePositon1);
+    if (error) console.log(error);
+    console.log(data);
   };
   const addSitesLink = async (
     is_active: boolean,
@@ -307,13 +370,13 @@ export default function Dashboard() {
       })
       .select();
   };
-  const handleContentChange = (id: string, newContent: string) => {
+  /* const handleContentChange = (id: string, newContent: string) => {
     setItemsdnd((items) =>
       items.map((item) =>
         item.id === id ? { ...item, content: newContent } : item
       )
     );
-  };
+  };*/
   ////////////////////////////////////////////////////////////////////////
 
   const handleInputChange = (id: number, value: string) => {
@@ -594,10 +657,10 @@ export default function Dashboard() {
                   <p
                     key={index}
                     onClick={() => {
+                      selectedUrl.current = link.link_url;
                       setselectedLink(link.link_url);
                       setname(link.user_name);
                       setdesc(link.user_desc);
-                      selectedUrl.current = link.link_url;
                     }}
                     className="text-blue-600"
                   >
@@ -860,6 +923,14 @@ export default function Dashboard() {
               >
                 add
               </Button>
+              <Button
+                onClick={() => {
+                  addReseauxLink();
+                  console.log(selectedUrl.current);
+                }}
+              >
+                add reseaux
+              </Button>
             </div>
           </div>
         </ScrollArea>
@@ -930,13 +1001,11 @@ export default function Dashboard() {
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext
-                    items={itemsdnd}
+                    items={itemsdnd.map((item) => item.position)}
                     strategy={verticalListSortingStrategy}
                   >
                     {itemsdnd.map((item) => (
-                      <SortableItem key={item.id} id={item.id}>
-                        {item.content}
-                      </SortableItem>
+                      <SortableItem key={item.position} item={item} />
                     ))}
                   </SortableContext>
                 </DndContext>
@@ -1091,23 +1160,21 @@ function addStringToArray(str: string): void {
   reseauLinkToAdd.push(str);
 }
 interface SortableItemProps {
-  id: string;
-  children: React.ReactNode;
+  item: Itemdnd;
 }
-
 //react dnd,dnd/sorted
-const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
+const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+    useSortable({ id: item.position });
   const style: Properties = {
     transform: CSS.Transform.toString(transform),
     transition,
     padding: "16px",
-    margin: "4px",
+    margin: "5px",
     backgroundColor: "#f0f0f0",
     border: "1px solid #ccc",
 
-    borderRadius: "4px",
+    borderRadius: "10px",
     touchAction: "none", // Important for mobile devices
     userSelect: "none", // Prevents text selection during drag
   };
@@ -1120,7 +1187,10 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
       {...listeners}
       className="flex justify-center"
     >
-      {children}
+      <div>
+        <img src={item.photo_url} alt={item.card_name} />
+        <h4>{item.card_name}</h4>
+      </div>
     </div>
   );
 };
