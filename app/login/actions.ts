@@ -43,6 +43,6 @@ export async function signup(formData: FormData) {
     redirect("/error");
   }
 
-  revalidatePath("/dashboard", "layout");
-  redirect("/dashboard");
+  revalidatePath("/emailconfirmation", "layout");
+  redirect("/emailconfirmation");
 }

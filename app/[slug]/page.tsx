@@ -25,9 +25,17 @@ import claireremovebg from "../../public/claireremovebg.png";
 import { Button } from "@/components/ui/button";
 import { Share2Icon, ShareIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-interface CountrieType {
-  username: string;
-  userdesc: string;
+interface LinkRetriv {
+  is_active: boolean;
+  is_pro: boolean;
+  user_name: string;
+  user_desc: string;
+  template: string;
+  grid: string;
+  monthly_click: number;
+  weekly_click: number;
+  daily_click: number;
+  link_url: string;
 }
 import "react-spotify-embed";
 import { Spotify } from "react-spotify-embed";
@@ -83,7 +91,7 @@ interface Appareance {
 export default function Page({ params }: { params: { slug: string } }) {
   // className={`bg-gradient-to-b from-[#3047f5] to-[#fc0101] w-full h-screen`}
   const [urlId, setTable] = useState("");
-  const [country, setCountrie] = useState<CountrieType[]>([]);
+  const [country, setCountrie] = useState<LinkRetriv[]>([]);
   //const [reseaux, setReseaux] = useState<Reseaux[]>([]);
   const [color1, setColor] = useState("");
   const [color2, setColor2] = useState("");
@@ -200,13 +208,9 @@ export default function Page({ params }: { params: { slug: string } }) {
 
   const fetchdata = async () => {
     const countriesWithCitiesQuery = supabase
-      .from("users")
-      .select(
-        `username,
-         userdesc
-         `
-      )
-      .eq("userurl", urlId);
+      .from("link")
+      .select("*")
+      .eq("link_url", urlId);
 
     type CountriesWithCities = QueryData<typeof countriesWithCitiesQuery>;
 
@@ -418,13 +422,13 @@ export default function Page({ params }: { params: { slug: string } }) {
                 style={{ color: appareance[0].nameColor }}
                 className={`text-xl  text-center`}
               >
-                {country[0]?.username}
+                {country[0]?.user_name}
               </p>
               <p
                 style={{ color: appareance[0].descColor }}
                 className={`my-5 text-center mx-10`}
               >
-                {country[0]?.userdesc}
+                {country[0]?.user_desc}
               </p>
               <Carroussel
                 img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"

@@ -1,12 +1,20 @@
 "use client";
 import { useRouter } from "next/navigation";
 
-import { createBrowserClient } from "@supabase/ssr";
-
-import { useEffect, useRef, useState } from "react";
+import { supabaseBrowserClient, supabase } from "../supabase/supabaseInstance";
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Properties } from "csstype";
+import { Children, useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { v4 } from "uuid";
-import { supabase } from "../supabase/supabaseInstance";
+//import { supabase } from "../supabase/supabaseInstance";
 import { Database } from "../database.type";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -64,21 +72,48 @@ import {
   VideotapeIcon,
   ViewIcon,
 } from "lucide-react";
-interface UserType {
-  userurl: string;
+
+interface Itemdnd {
+  id: string;
+  content: string;
 }
+
+const initialItems: Itemdnd[] = [
+  { id: "1", content: "Youtube" },
+  { id: "2", content: "Facebook" },
+  { id: "3", content: "Instagram" },
+];
+
+interface UserType {
+  link_url: string;
+}
+type Guid = string & { _guidBrand: undefined };
 
 type Item = {
   id: number;
   name: string;
   label: string;
 };
+
+interface LinkRetriv {
+  is_active: boolean;
+  is_pro: boolean;
+  user_name: string;
+  user_desc: string;
+  template: string;
+  grid: string;
+  monthly_click: number;
+  weekly_click: number;
+  daily_click: number;
+  link_url: string;
+}
 const reseauLinkToAdd: string[] = [];
 
 export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [isSelected, setIsSelected] = useState(true);
   const [value, setValue] = useState("");
+  const [selectedlink, setselectedLink] = useState("");
   const [name, setname] = useState("");
   const [desc, setdesc] = useState("");
   const [usersurl, setuserurl] = useState<UserType[]>([]);
@@ -94,6 +129,9 @@ export default function Dashboard() {
   const [labelselected, setlabelselected] = useState("");
   const [textDispo, setTextDispo] = useState("");
   const [paymentData, setPaymentData] = useState(null);
+  const userId = useRef("");
+  const [yourlink, setyourlink] = useState<LinkRetriv[]>([]);
+  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>(initialItems);
 
   const [buttonlayoutShow, setbuttonLayoutShow] = useState(false);
   const [gridlayoutShow, setgridLayoutShow] = useState(false);
@@ -101,6 +139,182 @@ export default function Dashboard() {
   const [isHome, setHome] = useState(true);
   const [isanalytics, setAnalytics] = useState(false);
   const [isshortlink, setshortlink] = useState(false);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setItemsdnd((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        let newItems = arrayMove(items, oldIndex, newIndex);
+
+        // Log positions and new data to console
+        console.log("Position:", newIndex);
+        console.log("New Items:", newItems[newIndex].content);
+        return newItems;
+      });
+    }
+  };
+  //1---supabase postgres functions
+  const selectedUrl = useRef("betelgeuse");
+  //donne tout les liens cree par les users
+  const fetchAllLink = async () => {
+    const { data, error } = await supabase
+      .from("link")
+      .select("*")
+      .eq("for_users_id", makeGuid(userId.current));
+    if (error) console.log(error);
+
+    if (data) {
+      setyourlink(data);
+      console.log(data[0].link_url);
+      console.log(data[1].link_url);
+      console.log(data[2].link_url);
+      console.log(data[3].link_url);
+      // setname(data[6].user_name);
+      //setdesc(data[6].user_desc);
+    }
+  };
+  const fetchdata = async () => {
+    const { data, error } = await supabase
+      .from("link")
+      .select("link_url")
+      .eq("link_url", selectedUrl.current);
+
+    if (error) console.log(error);
+
+    if (data) setuserurl(data);
+    console.log(data);
+  };
+  const changeName = async () => {
+    const { data, error } = await supabase
+      .from("link")
+      .update({ user_name: name })
+      .eq("link_url", selectedUrl.current);
+
+    if (error) console.log(error);
+
+    //if (data) setuserurl(data);
+    console.log(data);
+  };
+  const changeDesc = async () => {
+    const { data, error } = await supabase
+      .from("link")
+      .update({ user_desc: desc })
+      .eq("link_url", selectedUrl.current);
+
+    if (error) console.log(error);
+
+    //if (data) setuserurl(data);
+    console.log(data);
+  };
+  const changeLinkUrl = async () => {
+    if (value !== "createlink") {
+      if (!isuserUrlDispo) {
+        if (name !== "") {
+          const { data, error } = await supabase
+            .from("link")
+            .update({ link_url: name })
+            .eq("link_url", selectedUrl.current);
+
+          if (error) console.log(error);
+
+          //if (data) setuserurl(data);
+          console.log(data);
+        } else {
+          alert(" empty");
+        }
+      } else {
+        alert("name indisponible!");
+      }
+    } else {
+      alert("wong name choosen");
+    }
+  };
+
+  const addLinkUrl = async () => {
+    if (value !== "createlink") {
+      if (isuserUrlDispo) {
+        if (name !== "") {
+          const { data, error } = await supabase.from("link").insert({
+            is_active: true,
+            is_pro: true,
+            user_name: name,
+            user_desc: desc,
+            template: "",
+            grid: "",
+            monthly_click: 566,
+            weekly_click: 45,
+            daily_click: 3,
+            link_url: value,
+            for_users_id: makeGuid(userId.current),
+          });
+
+          console.log(data);
+
+          alert("your page now is live!");
+        } else {
+          alert(" empty");
+        }
+      } else {
+        alert("name indisponible!");
+      }
+    } else {
+      alert("wong name choosen");
+    }
+  };
+  const addReseauxLink = async (
+    is_active: boolean,
+    position: number,
+    card_name: string,
+    reseaux_url: string,
+    photo_url: string,
+    click: number,
+    for_link_url: string
+  ) => {
+    const { data, error } = await supabase
+      .from(" users_reseaux")
+      .insert({
+        is_active: is_active,
+        position: position,
+        card_name: card_name,
+        reseaux_url: reseaux_url,
+        photo_url: photo_url,
+        click: click,
+        for_link_url: for_link_url,
+      })
+      .select();
+  };
+  const addSitesLink = async (
+    is_active: boolean,
+    position: number,
+    card_name: string,
+    site_url: string,
+    photo_url: string,
+    click: number,
+    for_link_url: string
+  ) => {
+    const { data, error } = await supabase
+      .from(" users_site")
+      .insert({
+        is_active: is_active,
+        position: position,
+        card_name: card_name,
+        site_url: site_url,
+        photo_url: photo_url,
+        click: click,
+        for_link_url: for_link_url,
+      })
+      .select();
+  };
+  const handleContentChange = (id: string, newContent: string) => {
+    setItemsdnd((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, content: newContent } : item
+      )
+    );
+  };
+  ////////////////////////////////////////////////////////////////////////
 
   const handleInputChange = (id: number, value: string) => {
     setInputs((prevInputs) =>
@@ -161,17 +375,17 @@ export default function Dashboard() {
     setPaymentData(paymentMethod);
   };
   const route = useRouter();
-  const supabase = createBrowserClient(
-    "https://otuqsjkpvrkthepuffcs.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dXFzamtwdnJrdGhlcHVmZmNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTE0NjU0NTcsImV4cCI6MjAyNzA0MTQ1N30.ebAshwk3B9i7Vlh99ZiWBa-qIa0q6CzirgCA6NldONg"
-  );
+
   const isLogin = async () => {
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await supabaseBrowserClient.auth.getUser();
     if (error || !data?.user) {
       // route.push("/login");
     }
     if (data.user?.email !== null && data.user?.email !== undefined) {
       setEmail(data.user.email);
+      userId.current = data.user.id;
+
+      fetchAllLink();
     }
   };
 
@@ -180,97 +394,23 @@ export default function Dashboard() {
   }, []);
 
   const logOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseBrowserClient.auth.signOut();
     console.log("logged out!");
     route.push("/login");
     if (error) {
       console.log(error);
     }
   };
-
-  const fetchdata = async () => {
-    const countriesWithCitiesQuery = supabase
-      .from("users")
-      .select(
-        `userurl
-             `
-      )
-      .eq("userurl", value);
-
-    type CountriesWithCities = QueryData<typeof countriesWithCitiesQuery>;
-
-    const { data, error } = await countriesWithCitiesQuery;
-
-    if (error) throw error;
-    const countriesWithCities: CountriesWithCities = data;
-
-    setuserurl(countriesWithCities);
-    console.log(countriesWithCities);
-  };
-
-  const addNameUrl = async () => {
-    if (value !== "createlink") {
-      if (isuserUrlDispo) {
-        if (name !== "") {
-          const { data, error } = await supabase
-            .from("users")
-            .insert({
-              userid: `${v4().substring(0, 8)}`,
-              userplan: "3",
-              userurl: value,
-              username: name,
-              userdesc: desc,
-            })
-            .select();
-
-          console.log(data);
-
-          alert("your page now is live!");
-        } else {
-          alert(" empty");
-        }
-      } else {
-        alert("name indisponible!");
-      }
-    } else {
-      alert("wong name choosen");
-    }
-  };
-  const addReseauLink = async (fb: string) => {
-    let fbresult;
-    if (fb !== "undefinedundefined") {
-      fbresult = fb;
-    } else {
-      fbresult = null;
-    }
-    const { data, error } = await supabase
-      .from(" users_reseaux")
-      .insert({
-        facebook: fbresult,
-        youtube: "3",
-        x: value,
-        instagram: name,
-        pinterest: desc,
-        snapchat: "",
-        discord: "",
-        github: "",
-        onlyfans: "",
-        linkedIn: "",
-        tiktok: "",
-        reddit: "",
-        whatsApp: "",
-        telegram: "",
-        twitch: "",
-        quora: "",
-        medium: "",
-        soundCloud: "",
-      })
-      .select();
-  };
+  function makeGuid(text: string): Guid {
+    // todo: add some validation and normalization here
+    return text as Guid;
+  }
 
   const onChange = (e: any) => {
     var value = e.target.value;
     setValue(value);
+    selectedUrl.current = value;
+
     setname(value);
   };
 
@@ -298,7 +438,7 @@ export default function Dashboard() {
   }, [value]);
 
   useEffect(() => {
-    if (usersurl[0]?.userurl == null && usersurl[0]?.userurl == undefined) {
+    if (usersurl[0]?.link_url == null && usersurl[0]?.link_url == undefined) {
       setUserUrlDispo(true);
       setTextDispo("disponible");
       console.log("disponible");
@@ -449,17 +589,32 @@ export default function Dashboard() {
             {buttonlayoutShow ? <>{ButtonLayout()}</> : null}
             {gridlayoutShow ? (
               <>
+                <p className="my-5">All link</p>
+                {yourlink.map((link, index) => (
+                  <p
+                    key={index}
+                    onClick={() => {
+                      setselectedLink(link.link_url);
+                      setname(link.user_name);
+                      setdesc(link.user_desc);
+                      selectedUrl.current = link.link_url;
+                    }}
+                    className="text-blue-600"
+                  >
+                    {link.link_url}
+                  </p>
+                ))}
                 <div>
                   <Input
                     value={value}
                     maxLength={15}
                     onChange={onChange}
-                    placeholder="your extension name"
+                    placeholder={selectedlink}
                     startContent={
                       <div className="pointer-events-none flex items-center">
-                        <span className="text-default-400 text-small">
+                        <p className="text-default-400 text-small">
                           https://linktree/
-                        </span>
+                        </p>
                       </div>
                     }
                   />
@@ -480,7 +635,9 @@ export default function Dashboard() {
                   placeholder="your description"
                   className="my-5"
                 />
+
                 <Separator className="my-5" />
+
                 <p>add social link vertical? horizontal?</p>
 
                 <div className="mt-10">
@@ -698,7 +855,7 @@ export default function Dashboard() {
             <div className="flex justify-center">
               <Button
                 variant="outline"
-                onClick={addNameUrl}
+                onClick={addLinkUrl}
                 className="rounded-[50px] fixed bottom-2  bg-red-200 w-1/3 mx-10"
               >
                 add
@@ -711,7 +868,9 @@ export default function Dashboard() {
         <div className=" w-2/6 flex justify-center ">
           <div className="grid ">
             <Snippet color="success" className="my-3">
-              http://localhost:3000/orcel
+              <p>
+                http://localhost:3000/<span>{selectedlink}</span>
+              </p>
             </Snippet>
             <Tabs
               aria-label="Options"
@@ -766,17 +925,21 @@ export default function Dashboard() {
                   {desc}
                 </p>
 
-                <div className=" bg-white w-[250px] h-[50px] border-emerald-300 rounded-3xl  p-6 border-[2px]">
-                  <p className="text-center mb-2">youtube</p>
-                </div>
-
-                <div className=" bg-white w-[250px] h-[50px] border-emerald-300 rounded-3xl mt-4 p-6 border-[2px]">
-                  <p className="text-center mb-2">facebook</p>
-                </div>
-
-                <div className=" bg-white w-[250px] h-[50px] border-emerald-300 rounded-3xl mt-4  p-6 border-[2px]">
-                  <p className="text-center mb-2">instagram</p>
-                </div>
+                <DndContext
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={itemsdnd}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {itemsdnd.map((item) => (
+                      <SortableItem key={item.id} id={item.id}>
+                        {item.content}
+                      </SortableItem>
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           </div>
@@ -927,3 +1090,37 @@ function removeLeadingCharacter(str: string, charToRemove: string): string {
 function addStringToArray(str: string): void {
   reseauLinkToAdd.push(str);
 }
+interface SortableItemProps {
+  id: string;
+  children: React.ReactNode;
+}
+
+//react dnd,dnd/sorted
+const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+  const style: Properties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    padding: "16px",
+    margin: "4px",
+    backgroundColor: "#f0f0f0",
+    border: "1px solid #ccc",
+
+    borderRadius: "4px",
+    touchAction: "none", // Important for mobile devices
+    userSelect: "none", // Prevents text selection during drag
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="flex justify-center"
+    >
+      {children}
+    </div>
+  );
+};
