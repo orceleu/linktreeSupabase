@@ -2,28 +2,16 @@
 import { useRouter } from "next/navigation";
 
 import { supabaseBrowserClient, supabase } from "../supabase/supabaseInstance";
-import {
-  DndContext,
-  DragEndEvent,
-  useSensor,
-  closestCenter,
-  useSensors,
-  PointerSensor,
-  KeyboardSensor,
-} from "@dnd-kit/core";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   useSortable,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Properties } from "csstype";
 import { Children, useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { v4 } from "uuid";
-//import { supabase } from "../supabase/supabaseInstance";
 import { Database } from "../database.type";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -48,9 +36,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Copy,
-  Delete,
-  DeleteIcon,
   FacebookIcon,
   InstagramIcon,
   PlusIcon,
@@ -66,38 +51,31 @@ import {
   DropdownMenu,
   DropdownItem,
   Avatar,
-  User,
 } from "@nextui-org/react";
 
-import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
 import {
   BarChart4,
-  GalleryVertical,
   HomeIcon,
   Link2Icon,
-  Music2Icon,
   Square,
   SquareMinus,
-  VideotapeIcon,
-  ViewIcon,
 } from "lucide-react";
-import { UniqueIdentifier } from "@dnd-kit/core";
 interface Itemdnd {
   is_active: boolean;
   position: number;
   card_name: string;
-  site_url: string;
+  reseaux_url: string;
   photo_url: string;
   click: number;
   for_link_url: string;
 }
 
-const initialItemsUserSite: Itemdnd[] = [
+const initialItemsUserReseaux: Itemdnd[] = [
   {
     is_active: true,
     position: 0,
     card_name: "name1",
-    site_url: "google.com/1",
+    reseaux_url: "google.com/1",
     photo_url: "photo.com",
     click: 23,
     for_link_url: "orceleuler",
@@ -106,7 +84,7 @@ const initialItemsUserSite: Itemdnd[] = [
     is_active: true,
     position: 1,
     card_name: "name2",
-    site_url: "google.com/2",
+    reseaux_url: "google.com/2",
     photo_url: "photo.com",
     click: 23,
     for_link_url: "orceleuler",
@@ -115,7 +93,7 @@ const initialItemsUserSite: Itemdnd[] = [
     is_active: true,
     position: 2,
     card_name: "name3",
-    site_url: "google.com/3",
+    reseaux_url: "google.com/3",
     photo_url: "photo.com",
     click: 23,
     for_link_url: "orceleuler",
@@ -159,7 +137,6 @@ const reseauLinkToAdd: string[] = [];
 
 export default function Dashboard() {
   const [email, setEmail] = useState("");
-  const [isSelected, setIsSelected] = useState(true);
   const [value, setValue] = useState("");
   const [selectedlink, setselectedLink] = useState("");
   const [name, setname] = useState("");
@@ -170,7 +147,6 @@ export default function Dashboard() {
   const [isinstagramlinkdisable, setInstagramlinkdisable] = useState(false);
   const [isXlinkdisable, setXlinkdisable] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
-  const [id, setId] = useState<number>(1);
   const [inputs, setInputs] = useState<
     { id: number; value: string; label: string }[]
   >([]);
@@ -179,7 +155,7 @@ export default function Dashboard() {
   const [paymentData, setPaymentData] = useState(null);
   const userId = useRef("");
   const [yourlink, setyourlink] = useState<LinkRetriv[]>([]);
-  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>(initialItemsUserSite);
+  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>([]);
 
   const [buttonlayoutShow, setbuttonLayoutShow] = useState(false);
   const [gridlayoutShow, setgridLayoutShow] = useState(false);
@@ -187,7 +163,6 @@ export default function Dashboard() {
   const [isHome, setHome] = useState(true);
   const [isanalytics, setAnalytics] = useState(false);
   const [isshortlink, setshortlink] = useState(false);
-  const newCardReseauxTablePos = useRef<Itemdnd[]>([]);
   //url user selectionne
   const selectedUrl = useRef("*");
 
@@ -208,7 +183,9 @@ export default function Dashboard() {
       );
 
       setItemsdnd(newItems);
+
       console.log(newItems);
+      updateReseauxPosition(newItems);
     }
   };
   //1---supabase postgres functions
@@ -223,13 +200,12 @@ export default function Dashboard() {
 
     if (data) {
       setyourlink(data);
-      console.log(data[0].link_url);
-      console.log(data[1].link_url);
-      console.log(data[2].link_url);
-      console.log(data[3].link_url);
-      // setname(data[6].user_name);
-      //setdesc(data[6].user_desc);
+      setselectedLink(data[0]?.link_url);
+      setname(data[0].user_name);
+      setdesc(data[0].user_desc);
     }
+
+    fetchReseauxLink();
   };
   const fetchdata = async () => {
     const { data, error } = await supabase
@@ -240,7 +216,20 @@ export default function Dashboard() {
     if (error) console.log(error);
 
     if (data) setuserurl(data);
-    console.log(data);
+
+    console.log(`link url feching: ${data}`);
+  };
+  const fetchReseauxLink = async () => {
+    const { data, error } = await supabase
+      .from("users_reseaux")
+      .select("*")
+      .eq("for_link_url", "orceleuler");
+
+    if (error) console.log(error);
+
+    if (data) setItemsdnd(data);
+
+    console.log(`reseaux feching: ${data}`);
   };
   const changeName = async () => {
     const { data, error } = await supabase
@@ -325,18 +314,18 @@ export default function Dashboard() {
     let newCardReseauxTablePositon1: ReseauxData[] = [
       {
         is_active: true,
-        position: 1,
+        position: 3,
         card_name: "card name",
-        reseaux_url: "google.com/5",
+        reseaux_url: "google.com/3",
         photo_url: "photo.com",
         click: 1,
         for_link_url: selectedUrl.current,
       },
       {
         is_active: true,
-        position: 2,
+        position: 4,
         card_name: "card name",
-        reseaux_url: "google.com/6",
+        reseaux_url: "google.com/4",
         photo_url: "photo.com",
         click: 1,
         for_link_url: selectedUrl.current,
@@ -347,6 +336,18 @@ export default function Dashboard() {
       .insert(newCardReseauxTablePositon1);
     if (error) console.log(error);
     console.log(data);
+  };
+
+  const updateReseauxPosition = async (dataForUpdate: any) => {
+    itemsdnd.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("users_reseaux") // Remplacez par le nom de votre table
+          .update({ position: update.position }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("reseaux_url", update.reseaux_url);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
   };
   const addSitesLink = async (
     is_active: boolean,
@@ -1005,7 +1006,11 @@ export default function Dashboard() {
                     strategy={verticalListSortingStrategy}
                   >
                     {itemsdnd.map((item) => (
-                      <SortableItem key={item.position} item={item} />
+                      <SortableItem
+                        key={item.position}
+                        item={item}
+                        isDragOn={true}
+                      />
                     ))}
                   </SortableContext>
                 </DndContext>
@@ -1093,52 +1098,6 @@ function AppearanceLayout() {
   return (
     <div className="grid">
       <p>appearance layout</p>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
-      <Button>click</Button>
     </div>
   );
 }
@@ -1161,11 +1120,14 @@ function addStringToArray(str: string): void {
 }
 interface SortableItemProps {
   item: Itemdnd;
+  isDragOn: boolean;
 }
 //react dnd,dnd/sorted
-const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
+const SortableItem: React.FC<SortableItemProps> = ({ item, isDragOn }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.position });
+  const [isDraganddropOn, isDragandDropOff] = useState(isDragOn);
+  let listenersOnstate = isDraganddropOn ? { ...listeners } : undefined;
   const style: Properties = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -1184,12 +1146,11 @@ const SortableItem: React.FC<SortableItemProps> = ({ item }) => {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
+      {...listenersOnstate}
       className="flex justify-center"
     >
       <div>
-        <img src={item.photo_url} alt={item.card_name} />
-        <h4>{item.card_name}</h4>
+        <h4>{item.reseaux_url}</h4>
       </div>
     </div>
   );
