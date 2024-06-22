@@ -1,6 +1,5 @@
 "use client";
 import { useRouter } from "next/navigation";
-
 import { supabaseBrowserClient, supabase } from "../supabase/supabaseInstance";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
@@ -11,12 +10,19 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Properties } from "csstype";
-import { Children, useEffect, useRef, useState } from "react";
+import {
+  Children,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Database } from "../database.type";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import undraw_male_avatar_g98d from "../../public/undraw_male_avatar_g98d.svg";
-import { Snippet } from "@nextui-org/react";
+import { Slider, Snippet } from "@nextui-org/react";
 import { Switch } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { Tabs, Tab } from "@nextui-org/react";
@@ -25,6 +31,10 @@ import { Divider } from "@nextui-org/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import "chart.js/auto";
+import { FaFacebook } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
+import { BsTwitterX } from "react-icons/bs";
+
 import {
   Dialog,
   DialogClose,
@@ -43,6 +53,7 @@ import {
   TrashIcon,
   TwitchIcon,
   TwitterIcon,
+  YoutubeIcon,
 } from "lucide-react";
 
 import {
@@ -60,6 +71,8 @@ import {
   Square,
   SquareMinus,
 } from "lucide-react";
+import { RgbaStringColorPicker } from "react-colorful";
+import Link from "next/link";
 interface Itemdnd {
   is_active: boolean;
   position: number;
@@ -147,6 +160,7 @@ export default function Dashboard() {
   const [isinstagramlinkdisable, setInstagramlinkdisable] = useState(false);
   const [isXlinkdisable, setXlinkdisable] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
+
   const [inputs, setInputs] = useState<
     { id: number; value: string; label: string }[]
   >([]);
@@ -156,6 +170,28 @@ export default function Dashboard() {
   const userId = useRef("");
   const [yourlink, setyourlink] = useState<LinkRetriv[]>([]);
   const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>([]);
+
+  //color picker
+
+  /*borderRadius,
+  borderRadiusColor,
+  padding,
+  margin*/
+  const [bgcolor1, setbgColor1] = useState(" rgba(255, 255, 255, 1)");
+  const [bgcolor2, setbgColor2] = useState(" rgba(255, 255, 255, 1)");
+  const [color1, setColor] = useState(" rgba(0, 0, 0, 1)");
+  const [cardcolor, setCardColor] = useState(" rgba(152, 205, 166, 0)");
+  const [cardBorderRadius, setCardBorderRadius] = useState<number | number[]>(
+    15
+  );
+  const [cardBorderRadiusColor, setCardBorderRadiusColor] = useState(
+    " rgba(255, 0, 213, 1)"
+  );
+  const [cardPadding, setCardPadding] = useState<number | number[]>(15);
+  const [cardmargin, setCardmargin] = useState<number | number[]>(7);
+  const colorcontext = createContext(color1);
+  const [colorDegres, setColorDegres] = useState<number | number[]>(45);
+  //
 
   const [buttonlayoutShow, setbuttonLayoutShow] = useState(false);
   const [gridlayoutShow, setgridLayoutShow] = useState(false);
@@ -188,6 +224,32 @@ export default function Dashboard() {
       updateReseauxPosition(newItems);
     }
   };
+
+  const addItemdata = () => {
+    setItemsdnd((previewItem) => [
+      ...previewItem,
+      {
+        is_active: true,
+        position: 0,
+        card_name: "name1",
+        reseaux_url: "google.com/5",
+        photo_url: "photo.com",
+        click: 23,
+        for_link_url: "orceleuler",
+      },
+
+      {
+        is_active: true,
+        position: 0,
+        card_name: "name1",
+        reseaux_url: "google.com/6",
+        photo_url: "photo.com",
+        click: 23,
+        for_link_url: "orceleuler",
+      },
+    ]);
+  };
+
   //1---supabase postgres functions
 
   //donne tout les liens cree par les users
@@ -686,7 +748,76 @@ export default function Dashboard() {
                     dispo? <span>{textDispo}</span>
                   </p>
                 </div>
-
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      pick background color :<span>{bgcolor1}</span>-
+                      <span>{bgcolor2}</span>
+                      <PlusIcon />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        pick background color: <span>{bgcolor1}</span>-
+                        <span>{bgcolor2}</span>
+                      </DialogTitle>
+                      <DialogDescription>
+                        Choose your social media link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div>
+                      <RgbaStringColorPicker
+                        color={bgcolor1}
+                        onChange={setbgColor1}
+                      />
+                      <RgbaStringColorPicker
+                        color={bgcolor2}
+                        onChange={setbgColor2}
+                      />
+                      ;
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      pick color <span>{color1}</span>
+                      <PlusIcon />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        pick color<span>{color1}</span>
+                      </DialogTitle>
+                      <DialogDescription>
+                        Choose your social media link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div>
+                      <RgbaStringColorPicker
+                        color={color1}
+                        onChange={setColor}
+                      />
+                      ;
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <Input
                   value={name}
                   onChange={onChangename}
@@ -765,18 +896,10 @@ export default function Dashboard() {
                 </div>
                 <Button
                   onClick={() => {
-                    /* items.map((item) => {
-                      //addStringToArray(`${item.id}${item.name}`);
-                    });*/
-                    console.log(`${items[0]?.id}${items[0]?.name}`);
-                    console.log(`${items[1]?.id}${items[1]?.name}`);
-                    console.log(`${items[2]?.id}${items[2]?.name}`);
-                    // console.log(reseauLinkToAdd[0].toString());
-                    //console.log(reseauLinkToAdd[1].toString());
-                    //console.log(reseauLinkToAdd[2].toString());
+                    addItemdata();
                   }}
                 >
-                  show reseau link added
+                  add item to dnd
                 </Button>
                 <Dialog>
                   <DialogTrigger asChild>
@@ -913,7 +1036,102 @@ export default function Dashboard() {
               </>
             ) : null}
 
-            {appearrancelayoutShow ? <>{AppearanceLayout()}</> : null}
+            {appearrancelayoutShow ? (
+              <>
+                <div className="grid">
+                  <p className="font-bold my-5">
+                    Background color: <span>{bgcolor1}</span> -
+                    <span>{bgcolor2}</span>
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <RgbaStringColorPicker
+                      color={bgcolor1}
+                      onChange={setbgColor1}
+                    />
+                    <RgbaStringColorPicker
+                      color={bgcolor2}
+                      onChange={setbgColor2}
+                    />
+                    ;
+                  </div>
+                  <Slider
+                    label="Temperature"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setColorDegres}
+                    value={colorDegres}
+                    className="max-w-md"
+                  />
+                  <p className="font-bold my-5">
+                    Name color: <span>{color1}</span>
+                  </p>
+
+                  <RgbaStringColorPicker color={color1} onChange={setColor} />
+                  <p className="font-bold my-5">
+                    Card color: <span>{cardcolor}</span>
+                  </p>
+
+                  <RgbaStringColorPicker
+                    color={cardcolor}
+                    onChange={setCardColor}
+                  />
+
+                  <p className="font-bold my-5">
+                    Card Outline color: <span>{cardBorderRadiusColor}</span>
+                  </p>
+
+                  <RgbaStringColorPicker
+                    color={cardBorderRadiusColor}
+                    onChange={setCardBorderRadiusColor}
+                  />
+
+                  <p className="font-bold my-5">
+                    Margin: <span>{cardmargin}</span>
+                  </p>
+
+                  <Slider
+                    label="Margin"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setCardmargin}
+                    value={cardmargin}
+                    className="max-w-md"
+                  />
+                  <p className="font-bold my-5">
+                    padding: <span>{cardPadding}</span>
+                  </p>
+
+                  <Slider
+                    label="Padding"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setCardPadding}
+                    value={cardPadding}
+                    className="max-w-md"
+                  />
+                  <p className="font-bold my-5">
+                    Border Radius: <span>{cardBorderRadius}</span>
+                  </p>
+
+                  <Slider
+                    label="Border Radius"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setCardBorderRadius}
+                    value={cardBorderRadius}
+                    className="max-w-md"
+                  />
+                </div>
+              </>
+            ) : null}
 
             <br />
             <div className="flex justify-center">
@@ -981,7 +1199,12 @@ export default function Dashboard() {
                 }
               />
             </Tabs>
-            <div className=" bg-white w-[300px] h-[500px] border-gray-300 rounded-3xl shadow-md p-6 border-[5px]">
+            <div
+              className="  w-[300px] h-[500px] border-gray-300 rounded-3xl shadow-md p-6 border-[5px]"
+              style={{
+                background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
+              }}
+            >
               <div className="grid mx-auto">
                 <Image
                   src={undraw_male_avatar_g98d}
@@ -989,13 +1212,35 @@ export default function Dashboard() {
                   className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
                 />
 
-                <p className="text-xl text-center">
+                <p className="text-xl text-center" style={{ color: color1 }}>
                   @<span>{name}</span>
                 </p>
 
                 <p className="my-5 mx-10 text-gray-500 text-center text-[12px] ">
                   {desc}
                 </p>
+                <div className="flex justify-center">
+                  <div className="flex items-center gap-5">
+                    <Link href="https://www.facebook.com" target="_blank">
+                      <FaFacebook
+                        className="w-10 h-10 "
+                        style={{ color: color1 }}
+                      />
+                    </Link>
+                    <Link href="https://www.instagram.com" target="_blank">
+                      <FaInstagram
+                        className="w-10 h-10 mx-10"
+                        style={{ color: color1 }}
+                      />
+                    </Link>
+                    <Link href="https://www.x.com" target="_blank">
+                      <BsTwitterX
+                        className="w-10 h-10  "
+                        style={{ color: color1 }}
+                      />
+                    </Link>
+                  </div>
+                </div>
 
                 <DndContext
                   collisionDetection={closestCenter}
@@ -1010,6 +1255,11 @@ export default function Dashboard() {
                         key={item.position}
                         item={item}
                         isDragOn={true}
+                        backgroundColor={cardcolor}
+                        borderRadius={cardBorderRadius}
+                        borderRadiusColor={cardBorderRadiusColor}
+                        padding={cardPadding}
+                        margin={cardmargin}
                       />
                     ))}
                   </SortableContext>
@@ -1121,22 +1371,36 @@ function addStringToArray(str: string): void {
 interface SortableItemProps {
   item: Itemdnd;
   isDragOn: boolean;
+  backgroundColor: string;
+  borderRadius: number | number[];
+  borderRadiusColor: string;
+  padding: number | number[];
+  margin: number | number[];
 }
 //react dnd,dnd/sorted
-const SortableItem: React.FC<SortableItemProps> = ({ item, isDragOn }) => {
+const SortableItem: React.FC<SortableItemProps> = ({
+  item,
+  isDragOn,
+  backgroundColor,
+  borderRadius,
+  borderRadiusColor,
+  padding,
+  margin,
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.position });
+
   const [isDraganddropOn, isDragandDropOff] = useState(isDragOn);
   let listenersOnstate = isDraganddropOn ? { ...listeners } : undefined;
   const style: Properties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    padding: "16px",
-    margin: "5px",
-    backgroundColor: "#f0f0f0",
-    border: "1px solid #ccc",
+    padding: `${padding}px`,
+    margin: `${margin}px`,
+    backgroundColor: backgroundColor,
+    border: `1px solid ${borderRadiusColor}`,
 
-    borderRadius: "10px",
+    borderRadius: `${borderRadius}px`,
     touchAction: "none", // Important for mobile devices
     userSelect: "none", // Prevents text selection during drag
   };
