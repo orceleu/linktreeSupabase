@@ -31,10 +31,12 @@ import { Divider } from "@nextui-org/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import "chart.js/auto";
-import { FaFacebook } from "react-icons/fa";
+import { FaFacebook, FaLocationArrow } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa";
-import { BsTwitterX } from "react-icons/bs";
-
+import { BsCheck2Circle, BsPhone, BsTwitterX } from "react-icons/bs";
+import { Badge } from "@/components/ui/badge";
+import { BsFillPatchCheckFill } from "react-icons/bs";
+import { IconType } from "react-icons/lib";
 import {
   Dialog,
   DialogClose,
@@ -73,6 +75,7 @@ import {
 } from "lucide-react";
 import { RgbaStringColorPicker } from "react-colorful";
 import Link from "next/link";
+
 interface Itemdnd {
   is_active: boolean;
   position: number;
@@ -83,46 +86,24 @@ interface Itemdnd {
   for_link_url: string;
 }
 
-const initialItemsUserReseaux: Itemdnd[] = [
-  {
-    is_active: true,
-    position: 0,
-    card_name: "name1",
-    reseaux_url: "google.com/1",
-    photo_url: "photo.com",
-    click: 23,
-    for_link_url: "orceleuler",
-  },
-  {
-    is_active: true,
-    position: 1,
-    card_name: "name2",
-    reseaux_url: "google.com/2",
-    photo_url: "photo.com",
-    click: 23,
-    for_link_url: "orceleuler",
-  },
-  {
-    is_active: true,
-    position: 2,
-    card_name: "name3",
-    reseaux_url: "google.com/3",
-    photo_url: "photo.com",
-    click: 23,
-    for_link_url: "orceleuler",
-  },
-];
+interface UserSite {
+  is_active: boolean;
+  position: number;
+  card_name: string;
+  reseaux_url: string;
+  photo_url: string;
+  click: number;
+  for_link_url: string;
+}
+
+interface IconReseaux {
+  icon: IconType;
+}
 
 interface UserType {
   link_url: string;
 }
 type Guid = string & { _guidBrand: undefined };
-
-type Item = {
-  id: number;
-  name: string;
-  label: string;
-};
 
 interface LinkRetriv {
   is_active: boolean;
@@ -159,17 +140,26 @@ export default function Dashboard() {
   const [isfacebooklinkdisable, setFacebooklinkdisable] = useState(false);
   const [isinstagramlinkdisable, setInstagramlinkdisable] = useState(false);
   const [isXlinkdisable, setXlinkdisable] = useState(false);
-  const [items, setItems] = useState<Item[]>([]);
+
+  const [items, setItems] = useState<Itemdnd[]>([]);
+  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>([]);
 
   const [inputs, setInputs] = useState<
-    { id: number; value: string; label: string }[]
+    {
+      is_active: boolean;
+      position: number;
+      card_name: string;
+      reseaux_url: string;
+      photo_url: string;
+      click: number;
+      for_link_url: string;
+    }[]
   >([]);
   const [labelselected, setlabelselected] = useState("");
   const [textDispo, setTextDispo] = useState("");
   const [paymentData, setPaymentData] = useState(null);
   const userId = useRef("");
   const [yourlink, setyourlink] = useState<LinkRetriv[]>([]);
-  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>([]);
 
   //color picker
 
@@ -202,6 +192,26 @@ export default function Dashboard() {
   //url user selectionne
   const selectedUrl = useRef("*");
 
+  const reseauxIcons: IconReseaux[] = [
+    { icon: FaFacebook },
+    { icon: FaInstagram },
+    { icon: BsTwitterX },
+  ];
+
+  /*
+
+  remaniement de itemsdnd, maitenant update or add item on database
+   
+   1- changer la itemdnd sur la table site
+   2-mettre la table reseaux sur itemdnd
+   3-
+
+
+
+
+
+*/
+
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
 
@@ -226,28 +236,7 @@ export default function Dashboard() {
   };
 
   const addItemdata = () => {
-    setItemsdnd((previewItem) => [
-      ...previewItem,
-      {
-        is_active: true,
-        position: 0,
-        card_name: "name1",
-        reseaux_url: "google.com/5",
-        photo_url: "photo.com",
-        click: 23,
-        for_link_url: "orceleuler",
-      },
-
-      {
-        is_active: true,
-        position: 0,
-        card_name: "name1",
-        reseaux_url: "google.com/6",
-        photo_url: "photo.com",
-        click: 23,
-        for_link_url: "orceleuler",
-      },
-    ]);
+    setItemsdnd((previewItem) => [...previewItem, ...itemsdnd]);
   };
 
   //1---supabase postgres functions
@@ -421,7 +410,7 @@ export default function Dashboard() {
     for_link_url: string
   ) => {
     const { data, error } = await supabase
-      .from(" users_site")
+      .from("users_site")
       .insert({
         is_active: is_active,
         position: position,
@@ -443,56 +432,80 @@ export default function Dashboard() {
   ////////////////////////////////////////////////////////////////////////
 
   const handleInputChange = (id: number, value: string) => {
-    setInputs((prevInputs) =>
-      prevInputs.map((input) => (input.id === id ? { ...input, value } : input))
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, reseaux_url: value } : input
+      )
     );
   };
 
   const handleLabelChange = (id: number, label: string) => {
-    setInputs((prevInputs) =>
-      prevInputs.map((input) => (input.id === id ? { ...input, label } : input))
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, card_name: label } : input
+      )
     );
   };
 
   const addItem = () => {
-    const newId = items.length + 1;
-    setItems((prevItems) => [
+    const newId = itemsdnd.length + 1;
+    setItemsdnd((prevItems) => [
       ...prevItems,
-      { id: newId, name: "", label: labelselected },
+      {
+        is_active: true,
+        position: newId,
+        card_name: labelselected,
+        reseaux_url: "",
+        photo_url: "photo.com",
+        click: 0,
+        for_link_url: "orceleuler",
+      },
     ]);
     setInputs((prevInputs) => [
       ...prevInputs,
-      { id: newId, value: "", label: "" },
+      {
+        is_active: true,
+        position: newId,
+        card_name: "",
+        reseaux_url: "",
+        photo_url: "",
+        click: 23,
+        for_link_url: "orceleuler",
+      },
     ]);
   };
 
   const handleSave = (id: number) => {
-    const input = inputs.find((input) => input.id === id);
+    const input = inputs.find((input) => input.position === id);
     if (input) {
-      setItems((prevItems) =>
+      setItemsdnd((prevItems) =>
         prevItems.map((item) =>
-          item.id === id
-            ? { ...item, name: input.value, label: input.label }
+          item.position === id
+            ? {
+                ...item,
+                reseaux_url: input.reseaux_url,
+                card_name: input.card_name,
+              }
             : item
         )
       );
     }
   };
   const handleDelete = (id: number) => {
-    const updatedItems = items.filter((item) => item.id !== id);
-    const updatedInputs = inputs.filter((input) => input.id !== id);
+    const updatedItems = itemsdnd.filter((item) => item.position !== id);
+    const updatedInputs = inputs.filter((input) => input.position !== id);
 
     const rearrangedItems = updatedItems.map((item, index) => ({
       ...item,
-      id: index + 1,
+      position: index + 1,
     }));
 
     const rearrangedInputs = updatedInputs.map((input, index) => ({
       ...input,
-      id: index + 1,
+      position: index + 1,
     }));
 
-    setItems(rearrangedItems);
+    setItemsdnd(rearrangedItems);
     setInputs(rearrangedInputs);
   };
 
@@ -837,34 +850,36 @@ export default function Dashboard() {
 
                 <div className="mt-10">
                   <ul>
-                    {items.map((item: any) => (
-                      <li key={item.id}>
+                    {itemsdnd.map((item: any) => (
+                      <li key={item.position}>
                         <p>
-                          {inputs.find((input) => input.id === item.id)
-                            ?.label || ""}
+                          {itemsdnd.find(
+                            (input) => input.position === item.position
+                          )?.card_name || item.card_name}
                         </p>
                         <Input
                           type="text"
                           value={
-                            inputs.find((input) => input.id === item.id)
-                              ?.value || ""
+                            inputs.find(
+                              (input) => input.position === item.position
+                            )?.reseaux_url || item.reseaux_url
                           }
                           onChange={(e) => {
-                            handleInputChange(item.id, e.target.value);
-                            handleLabelChange(item.id, labelselected);
+                            handleInputChange(item.position, e.target.value);
+                            handleLabelChange(item.position, labelselected);
 
                             //addStringToArray(`${item.id}${item.name}`);
                           }}
                           placeholder="Enter Url social media link"
                         />
                         <div className="flex items-center gap-2 my-2 end-3">
-                          <Button onClick={() => handleSave(item.id)}>
+                          <Button onClick={() => handleSave(item.position)}>
                             Save
                           </Button>
 
                           <Button
                             onClick={() => {
-                              handleDelete(item.id);
+                              handleDelete(item.position);
                               // setId((prev) => prev - 1);
                               //delete must be de bas en haut
                               //remove the link to add
@@ -888,8 +903,8 @@ export default function Dashboard() {
                   </ul>
                   <p>
                     All items:{" "}
-                    {items
-                      .map((item) => `${item.id}${item.name}`)
+                    {itemsdnd
+                      .map((item) => `${item.position}${item.reseaux_url}`)
                       .filter(Boolean)
                       .join(", ")}
                   </p>
@@ -1199,7 +1214,7 @@ export default function Dashboard() {
                 }
               />
             </Tabs>
-            <div
+            <ScrollArea
               className="  w-[300px] h-[500px] border-gray-300 rounded-3xl shadow-md p-6 border-[5px]"
               style={{
                 background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
@@ -1213,32 +1228,41 @@ export default function Dashboard() {
                 />
 
                 <p className="text-xl text-center" style={{ color: color1 }}>
-                  @<span>{name}</span>
+                  @<span>{name} </span>
                 </p>
+                <div className="flex justify-center">
+                  {" "}
+                  <BsFillPatchCheckFill className="text-blue-400 ml-16" />
+                </div>
 
                 <p className="my-5 mx-10 text-gray-500 text-center text-[12px] ">
                   {desc}
                 </p>
                 <div className="flex justify-center">
-                  <div className="flex items-center gap-5">
-                    <Link href="https://www.facebook.com" target="_blank">
-                      <FaFacebook
-                        className="w-10 h-10 "
-                        style={{ color: color1 }}
-                      />
-                    </Link>
-                    <Link href="https://www.instagram.com" target="_blank">
-                      <FaInstagram
-                        className="w-10 h-10 mx-10"
-                        style={{ color: color1 }}
-                      />
-                    </Link>
-                    <Link href="https://www.x.com" target="_blank">
-                      <BsTwitterX
-                        className="w-10 h-10  "
-                        style={{ color: color1 }}
-                      />
-                    </Link>
+                  <div className="flex items-center gap-4 my-1">
+                    <Badge variant="outline">
+                      <BsPhone />
+                      Outline
+                    </Badge>
+                    <Badge variant="outline">
+                      <span>
+                        <FaLocationArrow />
+                      </span>
+                      Outline
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <div className="flex items-center gap-2">
+                    {reseauxIcons.map((iconObj, index) => (
+                      <Link href="https://www.facebook.com" target="_blank">
+                        <iconObj.icon
+                          className="w-5 h-5 "
+                          style={{ color: color1 }}
+                        />
+                      </Link>
+                    ))}
                   </div>
                 </div>
 
@@ -1265,7 +1289,7 @@ export default function Dashboard() {
                   </SortableContext>
                 </DndContext>
               </div>
-            </div>
+            </ScrollArea>
           </div>
         </div>
       </div>
@@ -1390,8 +1414,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.position });
 
-  const [isDraganddropOn, isDragandDropOff] = useState(isDragOn);
-  let listenersOnstate = isDraganddropOn ? { ...listeners } : undefined;
+  let listenersOnstate = isDragOn ? { ...listeners } : undefined;
   const style: Properties = {
     transform: CSS.Transform.toString(transform),
     transition,
