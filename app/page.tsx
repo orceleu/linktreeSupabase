@@ -7,7 +7,6 @@ import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@nextui-org/react";
-import { NextUIProvider } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { Slider } from "@nextui-org/react";
 import {
@@ -76,12 +75,9 @@ export default function Home({
       .eq("id", 5);
     console.log(statusText, status);
   };
-  useEffect(() => {
-    //fetchdata();
-  }, []);
 
   return (
-    <NextUIProvider>
+    <main>
       {" "}
       <Navbar onMenuOpenChange={setIsMenuOpen} className="fixed top">
         <NavbarContent>
@@ -163,6 +159,6 @@ export default function Home({
           className="max-w-md"
         />
       </main>
-    </NextUIProvider>
+    </main>
   );
 }

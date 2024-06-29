@@ -1,10 +1,19 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { supabaseBrowserClient, supabase } from "../supabase/supabaseInstance";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { v4 } from "uuid";
 import {
   arrayMove,
   SortableContext,
+  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -15,11 +24,12 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { Database } from "../database.type";
-import { Button } from "@/components/ui/button";
+//import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import undraw_male_avatar_g98d from "../../public/undraw_male_avatar_g98d.svg";
 import { Slider, Snippet } from "@nextui-org/react";
@@ -31,9 +41,22 @@ import { Divider } from "@nextui-org/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import "chart.js/auto";
-import { FaFacebook, FaLocationArrow } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaLocationArrow,
+  FaPatreon,
+  FaYoutubeSquare,
+} from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa";
-import { BsCheck2Circle, BsPhone, BsTwitterX } from "react-icons/bs";
+import {
+  BsCheck2Circle,
+  BsDiscord,
+  BsPhone,
+  BsSpotify,
+  BsTwitch,
+  BsTwitterX,
+  BsYoutube,
+} from "react-icons/bs";
 import { Badge } from "@/components/ui/badge";
 import { BsFillPatchCheckFill } from "react-icons/bs";
 import { IconType } from "react-icons/lib";
@@ -48,6 +71,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  ChevronDownIcon,
   FacebookIcon,
   InstagramIcon,
   PlusIcon,
@@ -58,14 +82,23 @@ import {
   YoutubeIcon,
 } from "lucide-react";
 
+import // Dropdown,
+// DropdownTrigger,
+// DropdownMenu,
+// DropdownItem,
+// Avatar,
+// Button,
+// ButtonGroup,
+"@nextui-org/react";
+import { Button } from "@nextui-org/button";
+import { ButtonGroup } from "@nextui-org/button";
 import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Avatar,
-} from "@nextui-org/react";
-
+} from "@nextui-org/dropdown";
+import { Avatar } from "@nextui-org/avatar";
 import {
   BarChart4,
   HomeIcon,
@@ -76,21 +109,22 @@ import {
 import { RgbaStringColorPicker } from "react-colorful";
 import Link from "next/link";
 
-interface Itemdnd {
+interface ReseauxUrl {
+  id: string;
   is_active: boolean;
   position: number;
-  card_name: string;
+  icon: string;
   reseaux_url: string;
-  photo_url: string;
   click: number;
   for_link_url: string;
 }
 
-interface UserSite {
+interface SiteUrl {
+  id: string;
   is_active: boolean;
   position: number;
   card_name: string;
-  reseaux_url: string;
+  site_url: string;
   photo_url: string;
   click: number;
   for_link_url: string;
@@ -108,6 +142,7 @@ type Guid = string & { _guidBrand: undefined };
 interface LinkRetriv {
   is_active: boolean;
   is_pro: boolean;
+  photo_url: string;
   user_name: string;
   user_desc: string;
   template: string;
@@ -130,31 +165,81 @@ interface ReseauxData {
 const reseauLinkToAdd: string[] = [];
 
 export default function Dashboard() {
-  const [email, setEmail] = useState("");
+  //input for link
   const [value, setValue] = useState("");
-  const [selectedlink, setselectedLink] = useState("");
+  const [photoUrl, setphotoUrl] = useState(
+    "https://otuqsjkpvrkthepuffcs.supabase.co/storage/v1/object/public/OrcelEuler/avatar.jpg?t=2024-06-27T21%3A40%3A00.058Z"
+  );
+  const router = useRouter();
   const [name, setname] = useState("");
   const [desc, setdesc] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [newname, setNewname] = useState("");
+  const [newdesc, setnewdesc] = useState("");
   const [usersurl, setuserurl] = useState<UserType[]>([]);
   const [isuserUrlDispo, setUserUrlDispo] = useState(false);
   const [isfacebooklinkdisable, setFacebooklinkdisable] = useState(false);
   const [isinstagramlinkdisable, setInstagramlinkdisable] = useState(false);
   const [isXlinkdisable, setXlinkdisable] = useState(false);
+  const [email, setEmail] = useState("");
+  const [selectedlink, setselectedLink] = useState("");
+  const [selectedKeys, setSelectedKeys] = useState("text");
 
-  const [items, setItems] = useState<Itemdnd[]>([]);
-  const [itemsdnd, setItemsdnd] = useState<Itemdnd[]>([]);
-
-  const [inputs, setInputs] = useState<
+  const selectedValue = useMemo(
+    () => Array.from(selectedKeys).join(", ").replaceAll("_", " "),
+    [selectedKeys]
+  );
+  const [reseauxitems, setreseauxItems] = useState<ReseauxUrl[]>([
     {
-      is_active: boolean;
-      position: number;
-      card_name: string;
-      reseaux_url: string;
-      photo_url: string;
-      click: number;
-      for_link_url: string;
-    }[]
-  >([]);
+      id: "1234",
+      is_active: true,
+      position: 0,
+      icon: "facebook",
+      reseaux_url: "https://facebook.com",
+      click: 0,
+      for_link_url: "betelgeuse",
+    },
+    {
+      id: "1235",
+      is_active: true,
+      position: 1,
+      icon: "instagram",
+      reseaux_url: "https://facebook.com2",
+      click: 0,
+      for_link_url: "betelgeuse",
+    },
+    {
+      id: "1236",
+      is_active: true,
+      position: 2,
+      icon: "youtube",
+      reseaux_url: "https://facebook.com3",
+      click: 0,
+      for_link_url: "betelgeuse",
+    },
+    {
+      id: "1237",
+      is_active: true,
+      position: 2,
+      icon: "twitch",
+      reseaux_url: "https://facebook.com4",
+      click: 0,
+      for_link_url: "betelgeuse",
+    },
+    {
+      id: "1238",
+      is_active: true,
+      position: 2,
+      icon: "spotify",
+      reseaux_url: "https://facebook.com5",
+      click: 0,
+      for_link_url: "betelgeuse",
+    },
+  ]);
+
+  const [itemsdnd, setItemsdnd] = useState<SiteUrl[]>([]);
+  const [itemsdndforAdd, setItemsdndForADD] = useState<SiteUrl[]>([]);
+  const [inputs, setInputs] = useState<SiteUrl[]>([]);
   const [labelselected, setlabelselected] = useState("");
   const [textDispo, setTextDispo] = useState("");
   const [paymentData, setPaymentData] = useState(null);
@@ -190,7 +275,218 @@ export default function Dashboard() {
   const [isanalytics, setAnalytics] = useState(false);
   const [isshortlink, setshortlink] = useState(false);
   //url user selectionne
-  const selectedUrl = useRef("*");
+  let selectedUrl = useRef("*");
+  //let updatedItem = useRef<SiteUrl[]>([]);
+  const [selectedOption, setSelectedOption] = useState(new Set(["merge"]));
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  interface SortableItemProps {
+    item: SiteUrl;
+    index: number;
+    isDragOn: boolean;
+    backgroundColor: string;
+    borderRadius: number | number[];
+    borderRadiusColor: string;
+    padding: number | number[];
+    margin: number | number[];
+    title: string;
+    url: string;
+  }
+  //react dnd,dnd/sorted
+  const SortableItem: React.FC<SortableItemProps> = ({
+    item,
+    index,
+    isDragOn,
+    backgroundColor,
+    borderRadius,
+    borderRadiusColor,
+    padding,
+    margin,
+    title,
+    url,
+  }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({ id: item.position });
+
+    let listenersOnstate = isDragOn ? { ...listeners } : undefined;
+    const style: Properties = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      padding: `${padding}px`,
+      margin: `${margin}px`,
+      backgroundColor: backgroundColor,
+      border: `1px solid ${borderRadiusColor}`,
+      borderRadius: `${borderRadius}px`,
+      touchAction: "none", // Important for mobile devices
+      userSelect: "none", // Prevents text selection during drag
+    };
+    /*
+<div
+        {...listeners}
+        style={{
+          padding: "8px",
+          cursor: "grab",
+          backgroundColor: "#ccc",
+          marginRight: "8px",
+        }}
+      >
+        ||
+      </div>
+*/ if (item.is_active) {
+      return (
+        <div
+          ref={setNodeRef}
+          style={style}
+          {...attributes}
+          {...listenersOnstate}
+          className="flex justify-center"
+        >
+          <div>
+            <h4>{item.card_name}</h4>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  // main item
+
+  const MainSortableItem: React.FC<SortableItemProps> = ({
+    item,
+    index,
+    backgroundColor,
+    borderRadius,
+    borderRadiusColor,
+    padding,
+    margin,
+    title,
+    url,
+  }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({ id: item.position });
+
+    const style: Properties = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      padding: "8px",
+      borderRadius: "20px 20px 0 0",
+      marginTop: `15px`,
+      marginBottom: `1px`,
+      backgroundColor: "rgba(255, 255, 255, 1)",
+
+      touchAction: "none", // Important for mobile devices
+      userSelect: "none", // Prevents text selection during drag
+    };
+    /*
+<div
+        {...listeners}
+        style={{
+          padding: "8px",
+          cursor: "grab",
+          backgroundColor: "#ccc",
+          marginRight: "8px",
+        }}
+      >
+        ||
+      </div>
+*/
+    return (
+      <div style={style} className="flex justify-center">
+        <div
+          ref={setNodeRef}
+          {...listeners}
+          {...attributes}
+          style={{
+            padding: "8px",
+            cursor: "grab",
+            backgroundColor: "rgba(255, 255, 255, 1)",
+            marginRight: "8px",
+          }}
+        >
+          |||
+        </div>
+
+        <div className="mt-5 p-5  rounded-[20px] bg-white">
+          <p>
+            {" "}
+            Link : <span>{index + 1}:</span>
+          </p>
+          <div className="flex items-center gap-3">
+            <p className="font-bold my-1 text-gray-500">
+              <span>
+                {inputs.find((input) => input.position === item.position)
+                  ?.card_name || item.card_name}
+              </span>
+            </p>
+
+            <br />
+            <p className="font-bold text-gray-500">
+              URL:
+              <span>
+                {inputs.find((input) => input.position === item.position)
+                  ?.site_url || item.site_url}
+              </span>
+            </p>
+          </div>
+
+          <br />
+          <div className="flex justify-end">
+            <div className="flex items-center gap-5">
+              <p className="text-gray-500 text-sm">show on page:</p>
+              <Switch
+                isSelected={item.is_active}
+                aria-label="Automatic updates"
+                onChange={() =>
+                  handleIsVisibleChangeForSite(item.position, !item.is_active)
+                }
+              />
+              <Button
+                variant="flat"
+                onPress={() => {
+                  handleDelete(item.position); //delete item on ui
+                  deleteSiteUrl(item.site_url); //delete item on database
+                }}
+                className="bg-red-500 text-white"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  /*
+  
+  
+  
+  
+                </Dialog>
+*/
+
+  const descriptionsMap = {
+    merge:
+      "All commits from the source branch are added to the destination branch via a merge commit.",
+    squash:
+      "All commits from the source branch are added to the destination branch as a single commit.",
+    rebase:
+      "All commits from the source branch are added to the destination branch individually.",
+  };
+
+  const labelsMap: any = {
+    merge: "Create a merge commit",
+    squash: "Squash and merge",
+    rebase: "Rebase and merge",
+  };
+
+  // Convert the Set to an Array and get the first value.
+  const selectedOptionValue = Array.from(selectedOption)[0];
 
   const reseauxIcons: IconReseaux[] = [
     { icon: FaFacebook },
@@ -198,14 +494,72 @@ export default function Dashboard() {
     { icon: BsTwitterX },
   ];
 
+  const returnIcon = (pos: string, color: string) => {
+    switch (pos) {
+      case "facebook":
+        return <FaFacebook className="w-7 h-7" style={{ color: color }} />;
+      case "instagram":
+        return <FaInstagram className="w-7 h-7" style={{ color: color }} />;
+      case "x":
+        return <BsTwitterX className="w-7 h-7" style={{ color: color }} />;
+      case "youtube":
+        return <BsYoutube className="w-7 h-7" style={{ color: color }} />;
+      case "twitch":
+        return <BsTwitch className="w-7 h-7" style={{ color: color }} />;
+      case "spotify":
+        return <BsSpotify className="w-7 h-7" style={{ color: color }} />;
+      case "discord":
+        return <BsDiscord className="w-7 h-7" style={{ color: color }} />;
+      case "patreon":
+        return <FaPatreon className="w-7 h-7" style={{ color: color }} />;
+      default:
+        return null;
+    }
+  };
+  const returnComponent = (component: string, color: string, url: string) => {
+    switch (component) {
+      case "facebook":
+        return <FaFacebook className="w-7 h-7" style={{ color: color }} />;
+      case "instagram":
+        return <FaInstagram className="w-7 h-7" style={{ color: color }} />;
+      case "x":
+        return <BsTwitterX className="w-7 h-7" style={{ color: color }} />;
+      case "youtube":
+        return (
+          <>
+            <iframe
+              width={500}
+              height="mx-auto"
+              src={`${url}`}
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          </>
+        );
+      case "twitch":
+        return <BsTwitch className="w-7 h-7" style={{ color: color }} />;
+      case "spotify":
+        return <BsSpotify className="w-7 h-7" style={{ color: color }} />;
+      case "discord":
+        return <BsDiscord className="w-7 h-7" style={{ color: color }} />;
+      case "patreon":
+        return <FaPatreon className="w-7 h-7" style={{ color: color }} />;
+      default:
+        return null;
+    }
+  };
+
   /*
 
-  remaniement de itemsdnd, maitenant update or add item on database
+  
    
-   1- changer la itemdnd sur la table site
-   2-mettre la table reseaux sur itemdnd
-   3-
-
+   1- changer la itemdnd sur la table site***
+   2-update les positions en temps reel***
+   3- add input for label
+   4-detecter les donnees a inserer et les donnees a update,
+   5-active /desactive url
+   6-delete url site
 
 
 
@@ -221,7 +575,7 @@ export default function Dashboard() {
       );
       const newIndex = itemsdnd.findIndex((item) => item.position === over.id);
 
-      const newItems: any = arrayMove(itemsdnd, oldIndex, newIndex).map(
+      const newItems: SiteUrl[] = arrayMove(itemsdnd, oldIndex, newIndex).map(
         (item, index) => ({
           ...item,
           position: index,
@@ -229,15 +583,33 @@ export default function Dashboard() {
       );
 
       setItemsdnd(newItems);
-
+      //updatedItem.current = newItems;
       console.log(newItems);
-      updateReseauxPosition(newItems);
+
+      updateSitePosition(newItems);
     }
   };
 
   const addItemdata = () => {
     setItemsdnd((previewItem) => [...previewItem, ...itemsdnd]);
   };
+
+  // Fonction pour soustraire deux tableaux de chaînes de caractères
+  function subtractArrays(arr1: SiteUrl[], arr2: SiteUrl[]): SiteUrl[] {
+    return arr1.filter((item) => !arr2.includes(item));
+  }
+
+  // Exemple de tableaux
+  //const array1: SiteUrl[] = ["pomme", "banane", "orange", "fraise"];
+  // const array2: SiteUrl[] = ["banane", "fraise", "kiwi"];
+
+  // Fonction pour trouver les différences entre deux objets
+
+  // Affichage des différences
+  function additemTodatabase() {
+    //displayDifferences(updateddata, initialdata);
+    console.log(itemsdndforAdd);
+  }
 
   //1---supabase postgres functions
 
@@ -252,35 +624,49 @@ export default function Dashboard() {
     if (data) {
       setyourlink(data);
       setselectedLink(data[0]?.link_url);
+      setphotoUrl(data[0].photo_url);
+
       setname(data[0].user_name);
       setdesc(data[0].user_desc);
     }
 
-    fetchReseauxLink();
+    // fetchReseauxLink();
+    fetchSiteLink();
   };
-  const fetchdata = async () => {
+  const is_url_dispo = async () => {
     const { data, error } = await supabase
       .from("link")
       .select("link_url")
-      .eq("link_url", selectedUrl.current);
+      .eq("link_url", newUrl);
 
     if (error) console.log(error);
 
     if (data) setuserurl(data);
 
-    console.log(`link url feching: ${data}`);
+    console.log(`link url verification: ${data}`);
   };
-  const fetchReseauxLink = async () => {
+  const fetchSiteLink = async () => {
     const { data, error } = await supabase
-      .from("users_reseaux")
+      .from("users_site")
       .select("*")
-      .eq("for_link_url", "orceleuler");
+      .eq("for_link_url", selectedUrl.current)
+      .order("position", { ascending: true });
+
+    if (error) console.log(error);
+    if (data) setItemsdnd(data);
+    console.log(`site feching: ${data}`);
+  };
+  const updatePhotoUrl = async (url: string) => {
+    const { data, error } = await supabase
+      .from("link")
+      .update({ photo_url: url })
+      .eq("link_url", selectedUrl.current);
 
     if (error) console.log(error);
 
-    if (data) setItemsdnd(data);
-
-    console.log(`reseaux feching: ${data}`);
+    //if (data) setuserurl(data);
+    console.log(data);
+    window.location.reload();
   };
   const changeName = async () => {
     const { data, error } = await supabase
@@ -328,21 +714,26 @@ export default function Dashboard() {
     }
   };
 
-  const addLinkUrl = async () => {
-    if (value !== "createlink") {
+  const addLinkUrl = async (
+    user_name: string,
+    desc: string,
+    link_url: string
+  ) => {
+    if (link_url !== "createlink") {
       if (isuserUrlDispo) {
-        if (name !== "") {
+        if (user_name !== "") {
           const { data, error } = await supabase.from("link").insert({
             is_active: true,
             is_pro: true,
-            user_name: name,
+            photo_url: photoUrl,
+            user_name: user_name,
             user_desc: desc,
             template: "",
             grid: "",
-            monthly_click: 566,
-            weekly_click: 45,
-            daily_click: 3,
-            link_url: value,
+            monthly_click: 0,
+            weekly_click: 0,
+            daily_click: 0,
+            link_url: link_url,
             for_users_id: makeGuid(userId.current),
           });
           if (error) console.log(error);
@@ -390,7 +781,7 @@ export default function Dashboard() {
   };
 
   const updateReseauxPosition = async (dataForUpdate: any) => {
-    itemsdnd.map(
+    reseauxitems.map(
       async (update) => {
         const { data, error } = await supabase
 
@@ -400,28 +791,89 @@ export default function Dashboard() {
       } // Critères de sélection pour l'enregistrement à mettre à jour
     );
   };
-  const addSitesLink = async (
-    is_active: boolean,
-    position: number,
-    card_name: string,
-    site_url: string,
-    photo_url: string,
-    click: number,
-    for_link_url: string
-  ) => {
+  const updateSitePosition = async (dataForUpdate: SiteUrl[]) => {
+    dataForUpdate.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("users_site") // Remplacez par le nom de votre table
+          .update({ position: update.position }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("site_url", update.site_url);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
+  };
+  const updateSiteCardName = async (dataForUpdate: SiteUrl[]) => {
+    dataForUpdate.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("users_site") // Remplacez par le nom de votre table
+          .update({ card_name: update.card_name }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("site_url", update.site_url);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
+  };
+  const updateSiteUrl = async (dataForUpdate: SiteUrl[]) => {
+    dataForUpdate.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("users_site") // Remplacez par le nom de votre table
+          .update({ site_url: update.site_url }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("id", update.id);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
+  };
+  const updateActiveUrl = async (dataForUpdate: SiteUrl[]) => {
+    dataForUpdate.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("users_site") // Remplacez par le nom de votre table
+          .update({ is_active: update.is_active }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("id", update.id);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
+  };
+  const deleteSiteUrl = async (urlId: string) => {
+    const { data, error } = await supabase
+
+      .from("users_site") // Remplacez par le nom de votre table
+      .delete() // Remplacez par la colonne et la valeur à mettre à jour
+      .eq("site_url", urlId);
+    updateSitePosition(itemsdnd);
+  };
+
+  const addSitesLink = async () => {
     const { data, error } = await supabase
       .from("users_site")
-      .insert({
-        is_active: is_active,
-        position: position,
-        card_name: card_name,
-        site_url: site_url,
-        photo_url: photo_url,
-        click: click,
-        for_link_url: for_link_url,
-      })
-      .select();
+      .insert(itemsdndforAdd);
+    if (error) console.log(error);
+    console.log(data);
+    setItemsdndForADD([]);
   };
+
+  //******************************Supabase File Upload*/
+
+  const uploadProfileImg = async (e: any) => {
+    e.preventDefault();
+    let avatarFile = e.target[0]?.files[0];
+    let user = userId.current;
+    let filename = v4().slice(0, 6);
+    const { data, error } = await supabase.storage
+      .from("OrcelEuler")
+      .upload(user + "/" + filename, avatarFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+    retieveUrl(data?.path);
+  };
+  const retieveUrl = async (path: any) => {
+    const { data } = supabase.storage.from("OrcelEuler").getPublicUrl(path);
+    console.log(data.publicUrl);
+    updatePhotoUrl(data.publicUrl);
+  };
+
   /* const handleContentChange = (id: string, newContent: string) => {
     setItemsdnd((items) =>
       items.map((item) =>
@@ -432,15 +884,46 @@ export default function Dashboard() {
   ////////////////////////////////////////////////////////////////////////
 
   const handleInputChange = (id: number, value: string) => {
-    setItemsdnd((prevInputs) =>
+    setreseauxItems((prevInputs) =>
       prevInputs.map((input) =>
         input.position === id ? { ...input, reseaux_url: value } : input
       )
     );
   };
-
-  const handleLabelChange = (id: number, label: string) => {
+  /* const handleLabelChange = (id: number, label: string) => {
+    setreseauxItems((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, card_name: label } : input
+      )
+    );
+  };*/
+  const handleInputChangeForSite = (id: number, value: string) => {
     setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, site_url: value } : input
+      )
+    );
+    setItemsdndForADD((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, site_url: value } : input
+      )
+    );
+  };
+  const handleIsVisibleChangeForSite = (id: number, value: boolean) => {
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, is_active: value } : input
+      )
+    );
+  };
+
+  const handleLabelChangeForSite = (id: number, label: string) => {
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, card_name: label } : input
+      )
+    );
+    setItemsdndForADD((prevInputs) =>
       prevInputs.map((input) =>
         input.position === id ? { ...input, card_name: label } : input
       )
@@ -448,29 +931,44 @@ export default function Dashboard() {
   };
 
   const addItem = () => {
-    const newId = itemsdnd.length + 1;
+    const newId = itemsdnd.length;
     setItemsdnd((prevItems) => [
       ...prevItems,
       {
+        id: v4().slice(0, 5).toString(),
         is_active: true,
         position: newId,
-        card_name: labelselected,
-        reseaux_url: "",
+        card_name: "",
+        site_url: "",
         photo_url: "photo.com",
         click: 0,
-        for_link_url: "orceleuler",
+        for_link_url: selectedUrl.current,
+      },
+    ]);
+    setItemsdndForADD((prevItems) => [
+      ...prevItems,
+      {
+        id: v4().slice(0, 5).toString(),
+        is_active: true,
+        position: newId,
+        card_name: "",
+        site_url: "",
+        photo_url: "photo.com",
+        click: 0,
+        for_link_url: selectedUrl.current,
       },
     ]);
     setInputs((prevInputs) => [
       ...prevInputs,
       {
+        id: v4().slice(0, 5).toString(),
         is_active: true,
         position: newId,
         card_name: "",
-        reseaux_url: "",
+        site_url: "",
         photo_url: "",
         click: 23,
-        for_link_url: "orceleuler",
+        for_link_url: selectedUrl.current,
       },
     ]);
   };
@@ -483,7 +981,7 @@ export default function Dashboard() {
           item.position === id
             ? {
                 ...item,
-                reseaux_url: input.reseaux_url,
+                site_url: input.site_url,
                 card_name: input.card_name,
               }
             : item
@@ -552,29 +1050,41 @@ export default function Dashboard() {
 
     setname(value);
   };
-
+  const onChangeNewUrl = (e: any) => {
+    var value = e.target.value;
+    setNewUrl(value);
+    setNewname(value);
+  };
   const onChangedesc = (e: any) => {
     var value = e.target.value;
     setdesc(value);
+  };
+  const onChangeNewdesc = (e: any) => {
+    var value = e.target.value;
+    setnewdesc(value);
   };
   const onChangename = (e: any) => {
     var value = e.target.value;
     setname(value);
   };
+  const onChangeNewname = (e: any) => {
+    var value = e.target.value;
+    setNewname(value);
+  };
   useEffect(() => {
     isLogin();
-    if (value.length < 5) {
+    if (newUrl.length < 5) {
       console.log("your name is too short!");
     } else {
       setTimeout(
         () => {
-          fetchdata();
+          is_url_dispo();
         },
 
         2000
       );
     }
-  }, [value]);
+  }, [newUrl]);
 
   useEffect(() => {
     if (usersurl[0]?.link_url == null && usersurl[0]?.link_url == undefined) {
@@ -590,12 +1100,13 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen">
-      <div className="w-auto bg-gray-100 h-[700px]">
-        <div className="grid">
+      <div className="w-auto bg-gray-200 h-[700px]">
+        <div className="grid mx-2">
           <Button
-            variant="outline"
-            className="mx-2 mt-5"
-            onClick={() => {
+            size="sm"
+            variant="bordered"
+            className=" mt-5"
+            onPress={() => {
               setHome(true);
               setAnalytics(false);
               setshortlink(false);
@@ -604,9 +1115,10 @@ export default function Dashboard() {
             <HomeIcon />
           </Button>
           <Button
-            className="my-5 mx-2"
-            variant="outline"
-            onClick={() => {
+            size="sm"
+            className="my-5 "
+            variant="bordered"
+            onPress={() => {
               setHome(false);
               setAnalytics(true);
               setshortlink(false);
@@ -615,9 +1127,9 @@ export default function Dashboard() {
             <BarChart4 />
           </Button>
           <Button
-            variant="outline"
-            className="mx-2"
-            onClick={() => {
+            size="sm"
+            variant="bordered"
+            onPress={() => {
               setHome(false);
               setAnalytics(false);
               setshortlink(true);
@@ -669,7 +1181,9 @@ export default function Dashboard() {
   function home() {
     return (
       <div className="flex w-full">
-        <ScrollArea className="w-4/6  bg-white p-10 mt-5">
+        <ScrollArea className="w-4/6  bg-gray-100 p-10 ">
+          <br />
+
           <p className="fixed top-2 text-blue-600 font-bold text-3xl ">
             ssply.
             <span className="text-emerald-500 font-bold text-3xl">bio</span>
@@ -729,14 +1243,54 @@ export default function Dashboard() {
             {gridlayoutShow ? (
               <>
                 <p className="my-5">All link</p>
+                <ButtonGroup variant="flat">
+                  <Button>{labelsMap[selectedOptionValue]}</Button>
+                  <Dropdown placement="bottom-end">
+                    <DropdownTrigger>
+                      <Button isIconOnly>
+                        <ChevronDownIcon />
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      disallowEmptySelection
+                      aria-label="Merge options"
+                      selectedKeys={selectedOption}
+                      selectionMode="single"
+                      onSelectionChange={(key: any) => setSelectedOption(key)}
+                      className="max-w-[300px]"
+                    >
+                      <DropdownItem
+                        key="merge"
+                        description={descriptionsMap["merge"]}
+                      >
+                        {labelsMap["merge"]}
+                      </DropdownItem>
+                      <DropdownItem
+                        key="squash"
+                        description={descriptionsMap["squash"]}
+                      >
+                        {labelsMap["squash"]}
+                      </DropdownItem>
+                      <DropdownItem
+                        key="rebase"
+                        description={descriptionsMap["rebase"]}
+                      >
+                        {labelsMap["rebase"]}
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                </ButtonGroup>
+                <br />
                 {yourlink.map((link, index) => (
                   <p
                     key={index}
                     onClick={() => {
                       selectedUrl.current = link.link_url;
                       setselectedLink(link.link_url);
+                      setphotoUrl(link.photo_url);
                       setname(link.user_name);
                       setdesc(link.user_desc);
+                      fetchSiteLink();
                     }}
                     className="text-blue-600"
                   >
@@ -744,6 +1298,122 @@ export default function Dashboard() {
                   </p>
                 ))}
                 <div>
+                  {" "}
+                  <div className="flex justify-end">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="bordered" size="sm">
+                          Create new link
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Create new Link</DialogTitle>
+                          <DialogDescription>
+                            Create a new link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          <Input
+                            value={newUrl}
+                            maxLength={15}
+                            onChange={onChangeNewUrl}
+                            startContent={
+                              <div className="pointer-events-none flex items-center">
+                                <p className="text-default-400 text-small">
+                                  https://linktree/
+                                </p>
+                              </div>
+                            }
+                          />
+                          <p>
+                            dispo? <span>{textDispo}</span>
+                          </p>
+                          <br />
+                          <Input
+                            value={newname}
+                            onChange={onChangeNewname}
+                            placeholder="your name"
+                          />
+                          <Input
+                            value={newdesc}
+                            maxLength={100}
+                            onChange={onChangeNewdesc}
+                            placeholder="your description (optional)"
+                            className="my-5"
+                          />
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                          <DialogClose asChild>
+                            <Button type="button" variant="bordered">
+                              Close
+                            </Button>
+                          </DialogClose>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="bordered"
+                              onClick={() =>
+                                addLinkUrl(newname, newdesc, newUrl)
+                              }
+                              className=" fixed bottom-2  bg-green-500 "
+                            >
+                              add
+                            </Button>
+                          </div>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <form onSubmit={uploadProfileImg}>
+                    <div className="grid w-[320px] items-center gap-1.5">
+                      <label htmlFor="picture">
+                        Upload your Profile(png/jpeg)
+                      </label>
+                      <Input id="picture" type="file" />
+                    </div>
+                    <Button type="submit" className="my-2">
+                      upload
+                    </Button>
+                  </form>
+                  <div className="flex justify-end">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="bordered" size="sm">
+                          bg color
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>
+                            pick background color: <span>{bgcolor1}</span>-
+                            <span>{bgcolor2}</span>
+                          </DialogTitle>
+                          <DialogDescription>
+                            Choose your social media link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          <RgbaStringColorPicker
+                            color={bgcolor1}
+                            onChange={setbgColor1}
+                          />
+                          <RgbaStringColorPicker
+                            color={bgcolor2}
+                            onChange={setbgColor2}
+                          />
+                          ;
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                          <DialogClose asChild>
+                            <Button type="button" variant="bordered">
+                              Close
+                            </Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <br />
                   <Input
                     value={value}
                     maxLength={15}
@@ -757,297 +1427,255 @@ export default function Dashboard() {
                       </div>
                     }
                   />
-                  <p>
-                    dispo? <span>{textDispo}</span>
-                  </p>
                 </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      pick background color :<span>{bgcolor1}</span>-
-                      <span>{bgcolor2}</span>
-                      <PlusIcon />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>
-                        pick background color: <span>{bgcolor1}</span>-
-                        <span>{bgcolor2}</span>
-                      </DialogTitle>
-                      <DialogDescription>
-                        Choose your social media link.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div>
-                      <RgbaStringColorPicker
-                        color={bgcolor1}
-                        onChange={setbgColor1}
-                      />
-                      <RgbaStringColorPicker
-                        color={bgcolor2}
-                        onChange={setbgColor2}
-                      />
-                      ;
-                    </div>
-                    <DialogFooter className="sm:justify-start">
-                      <DialogClose asChild>
-                        <Button type="button" variant="secondary">
-                          Close
+                <br />
+                <div className="rounded-[20px] p-5 bg-white">
+                  <div className="flex justify-end">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="bordered" size="sm">
+                          Name color
                         </Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      pick color <span>{color1}</span>
-                      <PlusIcon />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>
-                        pick color<span>{color1}</span>
-                      </DialogTitle>
-                      <DialogDescription>
-                        Choose your social media link.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div>
-                      <RgbaStringColorPicker
-                        color={color1}
-                        onChange={setColor}
-                      />
-                      ;
-                    </div>
-                    <DialogFooter className="sm:justify-start">
-                      <DialogClose asChild>
-                        <Button type="button" variant="secondary">
-                          Close
-                        </Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-                <Input
-                  value={name}
-                  onChange={onChangename}
-                  placeholder="your name"
-                />
-                <Input
-                  value={desc}
-                  maxLength={100}
-                  onChange={onChangedesc}
-                  placeholder="your description"
-                  className="my-5"
-                />
-
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>
+                            pick color<span>{color1}</span>
+                          </DialogTitle>
+                          <DialogDescription>
+                            Choose your social media link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          <RgbaStringColorPicker
+                            color={color1}
+                            onChange={setColor}
+                          />
+                          ;
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                          <DialogClose asChild>
+                            <Button type="button" variant="bordered">
+                              Close
+                            </Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <br />
+                  <Input
+                    value={name}
+                    onChange={onChangename}
+                    placeholder="your name"
+                  />
+                  <Input
+                    value={desc}
+                    maxLength={100}
+                    onChange={onChangedesc}
+                    placeholder="your description"
+                    className="my-5"
+                  />
+                </div>
                 <Separator className="my-5" />
 
-                <p>add social link vertical? horizontal?</p>
+                <p className="text-center font-bold text-3xl my-3">
+                  all your link
+                </p>
+                {reseauxitems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-5 gap-3 my-2 bg-white rounded-[20px]"
+                  >
+                    <p key={index + 1} className=" font-bold">
+                      reseaux Link :<span>{index}</span>
+                    </p>
+                    <div
+                      key={index + 2}
+                      className="flex items-center gap-2 my-2"
+                    >
+                      <p key={index + 3}>
+                        {returnIcon(item.icon, "rgba(0, 0, 0, 1)")}
+                      </p>
 
-                <div className="mt-10">
-                  <ul>
-                    {itemsdnd.map((item: any) => (
-                      <li key={item.position}>
-                        <p>
-                          {itemsdnd.find(
-                            (input) => input.position === item.position
-                          )?.card_name || item.card_name}
+                      <Input key={index + 4} value={item.reseaux_url} />
+                    </div>
+                    <div key={index + 5} className="flex justify-end">
+                      <div key={index + 6} className="flex items-center gap-2">
+                        <p key={index + 7} className="text-gray-500 text-sm">
+                          show on page:
                         </p>
-                        <Input
-                          type="text"
-                          value={
-                            inputs.find(
-                              (input) => input.position === item.position
-                            )?.reseaux_url || item.reseaux_url
-                          }
-                          onChange={(e) => {
-                            handleInputChange(item.position, e.target.value);
-                            handleLabelChange(item.position, labelselected);
-
-                            //addStringToArray(`${item.id}${item.name}`);
-                          }}
-                          placeholder="Enter Url social media link"
-                        />
-                        <div className="flex items-center gap-2 my-2 end-3">
-                          <Button onClick={() => handleSave(item.position)}>
-                            Save
-                          </Button>
-
-                          <Button
-                            onClick={() => {
-                              handleDelete(item.position);
-                              // setId((prev) => prev - 1);
-                              //delete must be de bas en haut
-                              //remove the link to add
-                              console.log(labelselected);
-                              if (labelselected == "facebook link") {
-                                setFacebooklinkdisable(false);
-                              }
-                              if (labelselected == "instagram link") {
-                                setInstagramlinkdisable(false);
-                              }
-                              if (labelselected == "x link") {
-                                setXlinkdisable(false);
-                              }
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <p>
-                    All items:{" "}
-                    {itemsdnd
-                      .map((item) => `${item.position}${item.reseaux_url}`)
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                </div>
-                <Button
-                  onClick={() => {
-                    addItemdata();
-                  }}
-                >
-                  add item to dnd
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      Add social link <PlusIcon />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Add link</DialogTitle>
-                      <DialogDescription>
-                        Choose your social media link.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex items-center space-x-2">
-                      <div className="grid flex-1 gap-2">
-                        <ScrollArea className="w-full  rounded-md border">
-                          <div className="grig grid-cols-3 gap-3 ">
-                            <DialogClose asChild>
-                              <Button
-                                variant="outline"
-                                className="mx-2 my-2"
-                                disabled={isfacebooklinkdisable}
-                                onClick={() => {
-                                  console.log(
-                                    "facebook selected,so it can be showing"
-                                  );
-
-                                  setlabelselected("facebook link");
-                                  setFacebooklinkdisable(true);
-                                  addItem();
-                                }}
-                              >
-                                <FacebookIcon />
-                              </Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="outline"
-                                className="mx-2 my-2"
-                                disabled={isinstagramlinkdisable}
-                                onClick={() => {
-                                  console.log(
-                                    "facebook selected,so it can be showing"
-                                  );
-
-                                  setlabelselected("instagram link");
-                                  setInstagramlinkdisable(true);
-                                  addItem();
-                                }}
-                              >
-                                <InstagramIcon />
-                              </Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="outline"
-                                className="mx-2 my-2"
-                                disabled={isXlinkdisable}
-                                onClick={() => {
-                                  console.log(
-                                    "facebook selected,so it can be showing"
-                                  );
-
-                                  setlabelselected("x link");
-                                  setXlinkdisable(true);
-                                  addItem();
-                                }}
-                              >
-                                <TwitterIcon />
-                              </Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="outline"
-                                className="mx-2 my-2"
-                                onClick={() => {
-                                  console.log(
-                                    "facebook selected,so it can be showing"
-                                  );
-
-                                  setlabelselected("twitch link");
-                                  setFacebooklinkdisable(true);
-                                  addItem();
-                                }}
-                              >
-                                <TwitchIcon />
-                              </Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="outline"
-                                className="mx-2 my-2"
-                                disabled={isfacebooklinkdisable}
-                                onClick={() => {
-                                  console.log(
-                                    "facebook selected,so it can be showing"
-                                  );
-
-                                  setlabelselected("facebook link");
-                                  setFacebooklinkdisable(true);
-                                  addItem();
-                                }}
-                              >
-                                <SnailIcon />
-                              </Button>
-                            </DialogClose>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                            <Button className="mx-2 my-2">click</Button>
-                          </div>
-                        </ScrollArea>
+                        <Switch key={index + 8} />
                       </div>
                     </div>
-                    <DialogFooter className="sm:justify-start">
-                      <DialogClose asChild>
-                        <Button type="button" variant="secondary">
-                          Close
-                        </Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-                <p>your will be able to add any link after</p>
+                  </div>
+                ))}
+                {reseauxitems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-5 gap-3 my-2 bg-white rounded-[20px]"
+                  >
+                    <p key={index + 1} className=" font-bold">
+                      reseaux Link :<span>{index}</span>
+                    </p>
+                    <div
+                      key={index + 2}
+                      className="flex items-center gap-2 my-2"
+                    >
+                      <p key={index + 3}>
+                        {returnComponent(
+                          item.icon,
+                          "rgba(0, 0, 0, 1)",
+                          "https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
+                        )}
+                      </p>
+
+                      <Input key={index + 4} value={item.reseaux_url} />
+                    </div>
+                    <div key={index + 5} className="flex justify-end">
+                      <div key={index + 6} className="flex items-center gap-2">
+                        <p key={index + 7} className="text-gray-500 text-sm">
+                          show on page:
+                        </p>
+                        <Switch key={index + 8} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {reseauxitems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-5 gap-3 my-2 bg-white rounded-[20px]"
+                  >
+                    <p key={index + 1} className=" font-bold">
+                      reseaux Link :<span>{index}</span>
+                    </p>
+                    <div
+                      key={index + 2}
+                      className="flex items-center gap-2 my-2"
+                    >
+                      <p key={index + 3}>
+                        {returnIcon(item.icon, "rgba(0, 0, 0, 1)")}
+                      </p>
+
+                      <Input key={index + 4} value={item.reseaux_url} />
+                    </div>
+                    <div key={index + 5} className="flex justify-end">
+                      <div key={index + 6} className="flex items-center gap-2">
+                        <p key={index + 7} className="text-gray-500 text-sm">
+                          show on page:
+                        </p>
+                        <Switch key={index + 8} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <a
+                  href="https://emojipedia.org"
+                  className="text-fuchsia-700 font-bold underline"
+                >
+                  Go to add emoji🥇📕😎☀️
+                </a>
+                <div className="mt-10">
+                  <div>
+                    {" "}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={itemsdnd.map((item) => item.position)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {itemsdnd.map((item: any, index: any) => (
+                          <div>
+                            <MainSortableItem
+                              key={item.position}
+                              item={item}
+                              index={index}
+                              isDragOn={true}
+                              backgroundColor={cardcolor}
+                              borderRadius={cardBorderRadius}
+                              borderRadiusColor={cardBorderRadiusColor}
+                              padding={cardPadding}
+                              margin={cardmargin}
+                              title=""
+                              url=""
+                            />
+                            <div className="flex rounded-b-[20px] bg-white p-3 gap-2">
+                              <Input
+                                type="text"
+                                value={
+                                  inputs.find(
+                                    (input) => input.position === item.position
+                                  )?.card_name || item.card_name
+                                }
+                                onChange={(e) => {
+                                  handleLabelChangeForSite(
+                                    item.position,
+                                    e.target.value
+                                  );
+                                }}
+                                placeholder="Ex: My facebook page"
+                              />{" "}
+                              <Input
+                                type="text"
+                                value={
+                                  inputs.find(
+                                    (input) => input.position === item.position
+                                  )?.site_url || item.site_url
+                                }
+                                onChange={(e) => {
+                                  handleInputChangeForSite(
+                                    item.position,
+                                    e.target.value
+                                  );
+                                }}
+                                placeholder="Ex: My facebook page"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                </div>
+                <p>
+                  All items:{" "}
+                  {itemsdnd
+                    .map((item) => `${item.position}${item.site_url}`)
+                    .filter(Boolean)
+                    .join(",")}
+                </p>
+                <br />
+                <Button
+                  onPress={() => {
+                    //addItemdata();
+                    if (itemsdndforAdd.length > 0) {
+                      additemTodatabase();
+                      //if detect update ,Update in the function
+                      addSitesLink();
+                    } else {
+                      updateSiteCardName(itemsdnd);
+                      updateSiteUrl(itemsdnd);
+                      updateActiveUrl(itemsdnd);
+                    }
+                  }}
+                >
+                  Sync :add or update
+                </Button>
+                <br />
+                <Button
+                  variant="bordered"
+                  onPress={() => {
+                    addItem();
+                  }}
+                >
+                  Add link <PlusIcon />
+                </Button>
               </>
             ) : null}
 
@@ -1149,28 +1777,11 @@ export default function Dashboard() {
             ) : null}
 
             <br />
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={addLinkUrl}
-                className="rounded-[50px] fixed bottom-2  bg-red-200 w-1/3 mx-10"
-              >
-                add
-              </Button>
-              <Button
-                onClick={() => {
-                  addReseauxLink();
-                  console.log(selectedUrl.current);
-                }}
-              >
-                add reseaux
-              </Button>
-            </div>
           </div>
         </ScrollArea>
 
-        <Divider orientation="vertical" className="mx-2" />
-        <div className=" w-2/6 flex justify-center ">
+        <Divider orientation="vertical" />
+        <div className=" w-2/6 flex justify-center bg-gray-50 ">
           <div className="grid ">
             <Snippet color="success" className="my-3">
               <p>
@@ -1215,17 +1826,21 @@ export default function Dashboard() {
               />
             </Tabs>
             <ScrollArea
-              className="  w-[300px] h-[500px] border-gray-300 rounded-3xl shadow-md p-6 border-[5px]"
+              className="  w-[300px] h-[500px] border-gray-600 rounded-3xl shadow-lg p-6 border-[7px]"
               style={{
                 background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
               }}
             >
               <div className="grid mx-auto">
-                <Image
-                  src={undraw_male_avatar_g98d}
-                  alt=""
-                  className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
-                />
+                {photoUrl && (
+                  <Image
+                    src={photoUrl}
+                    alt="profil"
+                    width={100}
+                    height={100}
+                    className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
+                  />
+                )}
 
                 <p className="text-xl text-center" style={{ color: color1 }}>
                   @<span>{name} </span>
@@ -1255,18 +1870,16 @@ export default function Dashboard() {
 
                 <div className="flex justify-center">
                   <div className="flex items-center gap-2">
-                    {reseauxIcons.map((iconObj, index) => (
-                      <Link href="https://www.facebook.com" target="_blank">
-                        <iconObj.icon
-                          className="w-5 h-5 "
-                          style={{ color: color1 }}
-                        />
+                    {reseauxitems.map((item, index) => (
+                      <Link href={item.reseaux_url} target="_blank" key={index}>
+                        {returnIcon(item.icon, color1)}
                       </Link>
                     ))}
                   </div>
                 </div>
 
                 <DndContext
+                  sensors={sensors}
                   collisionDetection={closestCenter}
                   onDragEnd={handleDragEnd}
                 >
@@ -1274,16 +1887,19 @@ export default function Dashboard() {
                     items={itemsdnd.map((item) => item.position)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {itemsdnd.map((item) => (
+                    {itemsdnd.map((item, index) => (
                       <SortableItem
                         key={item.position}
                         item={item}
+                        index={index}
                         isDragOn={true}
                         backgroundColor={cardcolor}
                         borderRadius={cardBorderRadius}
                         borderRadiusColor={cardBorderRadiusColor}
                         padding={cardPadding}
                         margin={cardmargin}
+                        title=""
+                        url=""
                       />
                     ))}
                   </SortableContext>
@@ -1392,8 +2008,9 @@ function removeLeadingCharacter(str: string, charToRemove: string): string {
 function addStringToArray(str: string): void {
   reseauLinkToAdd.push(str);
 }
+/*
 interface SortableItemProps {
-  item: Itemdnd;
+  item: SiteUrl;
   isDragOn: boolean;
   backgroundColor: string;
   borderRadius: number | number[];
@@ -1422,23 +2039,40 @@ const SortableItem: React.FC<SortableItemProps> = ({
     margin: `${margin}px`,
     backgroundColor: backgroundColor,
     border: `1px solid ${borderRadiusColor}`,
-
     borderRadius: `${borderRadius}px`,
     touchAction: "none", // Important for mobile devices
     userSelect: "none", // Prevents text selection during drag
   };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listenersOnstate}
-      className="flex justify-center"
-    >
-      <div>
-        <h4>{item.reseaux_url}</h4>
+  /*
+<div
+        {...listeners}
+        style={{
+          padding: "8px",
+          cursor: "grab",
+          backgroundColor: "#ccc",
+          marginRight: "8px",
+        }}
+      >
+        ||
       </div>
-    </div>
-  );
+*/ /* if (item.is_active) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listenersOnstate}
+        className="flex justify-center"
+      >
+        <div>
+          <h4>{item.card_name}</h4>
+        </div>
+      </div>
+    );
+  }
+};*/
+const getAllAttributte = (position: number) => {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: position });
+  return { attributes, listeners, setNodeRef, transform, transition };
 };
