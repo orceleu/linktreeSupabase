@@ -1711,7 +1711,7 @@ export default function Dashboard() {
                         strategy={verticalListSortingStrategy}
                       >
                         {itemsdnd.map((item: any, index: any) => (
-                          <div>
+                          <div key={index + 1}>
                             <MainSortableItem
                               key={item.position}
                               item={item}
