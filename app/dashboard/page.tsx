@@ -74,6 +74,7 @@ import {
   ChevronDownIcon,
   FacebookIcon,
   InstagramIcon,
+  LinkIcon,
   PlusIcon,
   SnailIcon,
   TrashIcon,
@@ -108,6 +109,8 @@ import {
 } from "lucide-react";
 import { RgbaStringColorPicker } from "react-colorful";
 import Link from "next/link";
+import ReturnIcon from "./ReturnIcon";
+import { Spotify } from "react-spotify-embed";
 
 interface ReseauxUrl {
   id: string;
@@ -296,6 +299,7 @@ export default function Dashboard() {
     margin: number | number[];
     title: string;
     url: string;
+    witchComponent: string;
   }
   //react dnd,dnd/sorted
   const SortableItem: React.FC<SortableItemProps> = ({
@@ -309,35 +313,97 @@ export default function Dashboard() {
     margin,
     title,
     url,
+    witchComponent,
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
       useSortable({ id: item.position });
 
     let listenersOnstate = isDragOn ? { ...listeners } : undefined;
+
     const style: Properties = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      /*padding: `${padding}px`,
+      margin: `${margin}px`,
+      backgroundColor: backgroundColor,
+      border: `1px solid ${borderRadiusColor}`,
+      borderRadius: `${borderRadius}px`,*/
+      touchAction: "none", // Important for mobile devices
+      userSelect: "none", // Prevents text selection during drag
+    };
+    const styleForsep: Properties = {
       transform: CSS.Transform.toString(transform),
       transition,
       padding: `${padding}px`,
       margin: `${margin}px`,
-      backgroundColor: backgroundColor,
-      border: `1px solid ${borderRadiusColor}`,
-      borderRadius: `${borderRadius}px`,
+
       touchAction: "none", // Important for mobile devices
       userSelect: "none", // Prevents text selection during drag
     };
-    /*
-<div
-        {...listeners}
-        style={{
-          padding: "8px",
-          cursor: "grab",
-          backgroundColor: "#ccc",
-          marginRight: "8px",
-        }}
-      >
-        ||
-      </div>
-*/ if (item.is_active) {
+
+    const returnComponent = (component: string) => {
+      switch (component) {
+        case "COMPONENT_YOUTUBE_EMB":
+          return (
+            <div className="p-5">
+              <iframe
+                height="mx-auto"
+                src={`https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-`}
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>{" "}
+            </div>
+          );
+        case "COMPONENT_TEXT":
+          return (
+            <p style={{ color: cardcolor }} className="p-5 text-center">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+              Obcaecati architecto{" "}
+            </p>
+          );
+        case "COMPONENT_SPOTIFY":
+          return (
+            <Spotify
+              className="w-full mx-5  my-5"
+              link="https://open.spotify.com/album/0fUy6IdLHDpGNwavIlhEsl?si=mTiITmlHQpaGkoivGTv8Jw"
+            />
+          );
+        case "COMPONENT_SEPARATOR":
+          return <Separator className="my-5" />;
+        case "COMPONENT_LINK":
+          return (
+            <div
+              style={{
+                backgroundColor: backgroundColor,
+                border: `1px solid ${borderRadiusColor}`,
+                borderRadius: `${borderRadius}px`,
+                margin: `${margin}px`,
+                width: "230px",
+                padding: `${padding}px`,
+              }}
+            >
+              <p className="text-center mt-4">{item.card_name}</p>;
+            </div>
+          );
+        case "COMPONENT_FORM":
+          return (
+            <div
+              className="rounded-md shadow-md p-5 mt-5"
+              style={{ color: cardcolor }}
+            >
+              <Input label="Full name:" />
+              <br />
+              <Input label="Email:" />
+            </div>
+          );
+        default:
+          null;
+          break;
+      }
+    };
+
+    if (item.is_active) {
       return (
         <div
           ref={setNodeRef}
@@ -346,14 +412,21 @@ export default function Dashboard() {
           {...listenersOnstate}
           className="flex justify-center"
         >
-          <div>
-            <h4>{item.card_name}</h4>
-          </div>
+          {returnComponent(witchComponent)}
         </div>
       );
     }
   };
-
+  const [focusedInputId, setFocusedInputId] = useState<string>("0");
+  const inputRef = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const handleInputFocus = (id: string) => {
+    setFocusedInputId(id);
+  };
+  useEffect(() => {
+    if (focusedInputId && inputRef.current[focusedInputId]) {
+      inputRef.current[focusedInputId]?.focus();
+    }
+  }, [focusedInputId, inputs]);
   // main item
 
   const MainSortableItem: React.FC<SortableItemProps> = ({
@@ -366,6 +439,7 @@ export default function Dashboard() {
     margin,
     title,
     url,
+    witchComponent,
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
       useSortable({ id: item.position });
@@ -374,7 +448,7 @@ export default function Dashboard() {
       transform: CSS.Transform.toString(transform),
       transition,
       padding: "8px",
-      borderRadius: "20px 20px 0 0",
+      borderRadius: "20px ",
       marginTop: `15px`,
       marginBottom: `1px`,
       backgroundColor: "rgba(255, 255, 255, 1)",
@@ -396,79 +470,125 @@ export default function Dashboard() {
       </div>
 */
     return (
-      <div style={style} className="flex justify-center">
-        <div
-          ref={setNodeRef}
-          {...listeners}
-          {...attributes}
-          style={{
-            padding: "8px",
-            cursor: "grab",
-            backgroundColor: "rgba(255, 255, 255, 1)",
-            marginRight: "8px",
-          }}
-        >
-          |||
+      <div style={style} className="flex justify-between">
+        <div className="flex items-center gap-7">
+          <div
+            ref={setNodeRef}
+            {...listeners}
+            {...attributes}
+            style={{
+              padding: "8px",
+              cursor: "grab",
+
+              marginRight: "8px",
+            }}
+          >
+            |||
+          </div>
+
+          {ReturnIcon("gofundme")}
         </div>
 
         <div className="mt-5 p-5  rounded-[20px] bg-white">
-          <p>
-            {" "}
-            Link : <span>{index + 1}:</span>
-          </p>
-          <div className="flex items-center gap-3">
-            <p className="font-bold my-1 text-gray-500">
-              <span>
-                {inputs.find((input) => input.position === item.position)
-                  ?.card_name || item.card_name}
-              </span>
-            </p>
-
-            <br />
-            <p className="font-bold text-gray-500">
-              URL:
-              <span>
-                {inputs.find((input) => input.position === item.position)
-                  ?.site_url || item.site_url}
-              </span>
-            </p>
-          </div>
-
-          <br />
-          <div className="flex justify-end">
-            <div className="flex items-center gap-5">
-              <p className="text-gray-500 text-sm">show on page:</p>
-              <Switch
-                isSelected={item.is_active}
-                aria-label="Automatic updates"
-                onChange={() =>
-                  handleIsVisibleChangeForSite(item.position, !item.is_active)
-                }
-              />
-              <Button
-                variant="flat"
-                onPress={() => {
-                  handleDelete(item.position); //delete item on ui
-                  deleteSiteUrl(item.site_url); //delete item on database
-                }}
-                className="bg-red-500 text-white"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
+          {returnMainComponent(witchComponent, index, item, setNodeRef)}
         </div>
       </div>
     );
   };
+  function returnMainComponent(
+    witchComponent: string,
+    index: number,
+    item: any,
+    setNodeRef: any
+  ) {
+    switch (witchComponent) {
+      case "COMPONENT_LINK":
+        return (
+          <>
+            {" "}
+            <p>
+              {" "}
+              Link : <span>{index + 1}:</span>
+            </p>
+            <div className="flex rounded-b-[20px] bg-white p-3 gap-2">
+              <Input
+                type="text"
+                value={
+                  inputs.find((input) => input.position === item.position)
+                    ?.card_name || item.card_name
+                }
+                onChange={(e) => {
+                  handleLabelChangeForSite(item.position, e.target.value);
+                  // handleInputFocus(item.position.toString());
+                }}
+                onFocus={() => handleInputFocus(item.position.toString())}
+                autoFocus={item.position.toString() === focusedInputId}
+                onFocusChange={(isFocused) => {
+                  !isFocused ? handleInputFocus("") : null;
+                }}
+                placeholder="Ex: My facebook page"
+              />
 
-  /*
-  
-  
-  
-  
-                </Dialog>
-*/
+              <Input
+                ref={setNodeRef}
+                type="text"
+                value={
+                  inputs.find((input) => input.position === item.position)
+                    ?.site_url || item.site_url
+                }
+                onChange={(e) => {
+                  handleInputChangeForSite(item.position, e.target.value);
+                  //focus problem
+                  // handleInputFocus((item.position + 50).toString());
+                }}
+                onFocus={() =>
+                  handleInputFocus((item.position + 50).toString())
+                }
+                autoFocus={(item.position + 50).toString() === focusedInputId}
+                onFocusChange={(isFocused) => {
+                  !isFocused ? handleInputFocus("") : null;
+                }}
+                placeholder="Ex: My facebook page"
+              />
+            </div>
+            <br />
+            <div className="flex justify-end">
+              <div className="flex items-center gap-5">
+                <p className="text-gray-500 text-sm">show on page:</p>
+                <Switch
+                  isSelected={item.is_active}
+                  aria-label="Automatic updates"
+                  onChange={() =>
+                    handleIsVisibleChangeForSite(item.position, !item.is_active)
+                  }
+                />
+                <Button
+                  variant="flat"
+                  onPress={() => {
+                    handleDelete(item.position); //delete item on ui
+                    deleteSiteUrl(item.site_url); //delete item on database
+                  }}
+                  className="bg-red-500 text-white"
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </>
+        );
+
+      case "YOUTUBE_EMB":
+        return (
+          <>
+            <Input />
+          </>
+        );
+
+      default:
+        null;
+        break;
+    }
+  }
 
   const descriptionsMap = {
     merge:
@@ -1604,39 +1724,8 @@ export default function Dashboard() {
                               margin={cardmargin}
                               title=""
                               url=""
+                              witchComponent="COMPONENT_LINK"
                             />
-                            <div className="flex rounded-b-[20px] bg-white p-3 gap-2">
-                              <Input
-                                type="text"
-                                value={
-                                  inputs.find(
-                                    (input) => input.position === item.position
-                                  )?.card_name || item.card_name
-                                }
-                                onChange={(e) => {
-                                  handleLabelChangeForSite(
-                                    item.position,
-                                    e.target.value
-                                  );
-                                }}
-                                placeholder="Ex: My facebook page"
-                              />{" "}
-                              <Input
-                                type="text"
-                                value={
-                                  inputs.find(
-                                    (input) => input.position === item.position
-                                  )?.site_url || item.site_url
-                                }
-                                onChange={(e) => {
-                                  handleInputChangeForSite(
-                                    item.position,
-                                    e.target.value
-                                  );
-                                }}
-                                placeholder="Ex: My facebook page"
-                              />
-                            </div>
                           </div>
                         ))}
                       </SortableContext>
@@ -1900,6 +1989,7 @@ export default function Dashboard() {
                         margin={cardmargin}
                         title=""
                         url=""
+                        witchComponent="COMPONENT_LINK"
                       />
                     ))}
                   </SortableContext>
@@ -1970,13 +2060,6 @@ export default function Dashboard() {
   }
 }
 
-function GridLayout() {
-  return (
-    <div>
-      <p>grid layout</p>
-    </div>
-  );
-}
 function ButtonLayout() {
   return (
     <div>
@@ -1984,95 +2067,3 @@ function ButtonLayout() {
     </div>
   );
 }
-function AppearanceLayout() {
-  return (
-    <div className="grid">
-      <p>appearance layout</p>
-    </div>
-  );
-}
-async function checkStringAndAddLinkToReseauTable(str: string, word: string) {
-  const regex = new RegExp(`\\b${word}\\b`);
-  if (regex.test(str)) {
-  } else {
-    console.log(`Le mot "${word}" n'a pas été trouvé dans la chaîne.`);
-  }
-}
-//pour de decodage de la position
-function removeLeadingCharacter(str: string, charToRemove: string): string {
-  if (str.startsWith(charToRemove)) {
-    return str.slice(1);
-  }
-  return str;
-}
-function addStringToArray(str: string): void {
-  reseauLinkToAdd.push(str);
-}
-/*
-interface SortableItemProps {
-  item: SiteUrl;
-  isDragOn: boolean;
-  backgroundColor: string;
-  borderRadius: number | number[];
-  borderRadiusColor: string;
-  padding: number | number[];
-  margin: number | number[];
-}
-//react dnd,dnd/sorted
-const SortableItem: React.FC<SortableItemProps> = ({
-  item,
-  isDragOn,
-  backgroundColor,
-  borderRadius,
-  borderRadiusColor,
-  padding,
-  margin,
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: item.position });
-
-  let listenersOnstate = isDragOn ? { ...listeners } : undefined;
-  const style: Properties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    padding: `${padding}px`,
-    margin: `${margin}px`,
-    backgroundColor: backgroundColor,
-    border: `1px solid ${borderRadiusColor}`,
-    borderRadius: `${borderRadius}px`,
-    touchAction: "none", // Important for mobile devices
-    userSelect: "none", // Prevents text selection during drag
-  };
-  /*
-<div
-        {...listeners}
-        style={{
-          padding: "8px",
-          cursor: "grab",
-          backgroundColor: "#ccc",
-          marginRight: "8px",
-        }}
-      >
-        ||
-      </div>
-*/ /* if (item.is_active) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listenersOnstate}
-        className="flex justify-center"
-      >
-        <div>
-          <h4>{item.card_name}</h4>
-        </div>
-      </div>
-    );
-  }
-};*/
-const getAllAttributte = (position: number) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: position });
-  return { attributes, listeners, setNodeRef, transform, transition };
-};

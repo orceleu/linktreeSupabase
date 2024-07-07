@@ -112,7 +112,13 @@ export default function Home({
             <Link href="#">Login</Link>
           </NavbarItem>
           <NavbarItem>
-            <Button as={Link} color="primary" href="#" variant="flat">
+            <Button
+              as={Link}
+              color="primary"
+              href="#"
+              variant="flat"
+              className="text-fuchsia-800 font-bold"
+            >
               Sign Up
             </Button>
           </NavbarItem>
@@ -137,28 +143,53 @@ export default function Home({
           ))}
         </NavbarMenu>
       </Navbar>
-      <main className="flex min-h-screen flex-col items-center justify-between p-24">
-        <p>helloooo ,this is my first supabase postgres database.</p>
-        <Button color="success" className="text-blue-500">
-          Click me
-        </Button>
+      <main className="flex min-h-screen flex-col items-center p-10">
+        <br />
+        <br />
+        <br />
+        <br />
+        <p className="text-4xl font-semibold my-4 text-center max-w-[500px]">
+          Build your own landing page ,
+          <span className="text-amber-600">Get,track, & manage</span> all your
+          link in one place
+        </p>
         <Input
-          type="email"
-          color="primary"
-          label="Email"
-          placeholder="Enter your email"
-          defaultValue="junior@nextui.org"
-          className="max-w-[220px]"
-        />
-        <Slider
-          label="Temperature"
-          step={0.01}
-          maxValue={1}
-          minValue={0}
-          defaultValue={0.4}
-          className="max-w-md"
-        />
+          className="max-w-[500px] my-4"
+          placeholder="quicklnk/your link"
+        />{" "}
+        <Button variant="solid" className="text-fuchsia-800 font-bold">
+          Get your link
+        </Button>
+        <div className="rounded-[20px] bg-gray-50 my-10   h-[700px] w-full"></div>
       </main>
+      <div
+        style={{
+          background: `linear-gradient(180deg,rgba(255, 255, 255, 1),rgba(213, 0, 198, 1)   )`,
+        }}
+        className="flex justify-center h-[1000px] w-full  "
+      >
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-10 mx-10">
+          <div className="flex items-center ">
+            <p className="text-white font-bold text-xl lg:text-2xl mt-10 max-w-[200px]">
+              achieve more people make impact & track the perfomance
+            </p>
+            <div className="rounded-sm shadow-md  h-[300px] w-[600px] bg-white"></div>
+          </div>
+          <div className="flex items-center ">
+            <p className="text-white font-bold text-2xl mt-10 max-w-[200px]">
+              drag & drop editor user friendly
+            </p>
+            <div className="rounded-sm shadow-md  h-[300px] w-[600px] bg-white"></div>
+          </div>
+
+          <div className="flex items-center ">
+            <p className="text-white font-bold text-2xl mt-10 max-w-[200px]">
+              Multiple link in one place
+            </p>
+            <div className="rounded-sm shadow-md  h-[300px] w-[600px] bg-white"></div>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
