@@ -20,13 +20,7 @@ import {
 } from "@nextui-org/react";
 import Link from "next/link";
 // Create a single supabase client for interacting with your database
-export default function Home({
-  Component,
-  pageProps,
-}: {
-  Component: any;
-  pageProps: any;
-}) {
+export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuItems = [
     "Profile",
