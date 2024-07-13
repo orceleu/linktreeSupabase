@@ -76,7 +76,9 @@ import {
   InstagramIcon,
   LinkIcon,
   PlusIcon,
+  SeparatorHorizontalIcon,
   SnailIcon,
+  TextIcon,
   TrashIcon,
   TwitchIcon,
   TwitterIcon,
@@ -130,6 +132,18 @@ interface SiteUrl {
   site_url: string;
   photo_url: string;
   click: number;
+  for_link_url: string;
+}
+interface ComponentType {
+  id: string;
+  is_active: boolean;
+  position: number;
+  type: string;
+  texte: string;
+  photo_url: string;
+  click: number;
+  url: string;
+
   for_link_url: string;
 }
 
@@ -240,9 +254,9 @@ export default function Dashboard() {
     },
   ]);
 
-  const [itemsdnd, setItemsdnd] = useState<SiteUrl[]>([]);
-  const [itemsdndforAdd, setItemsdndForADD] = useState<SiteUrl[]>([]);
-  const [inputs, setInputs] = useState<SiteUrl[]>([]);
+  const [itemsdnd, setItemsdnd] = useState<ComponentType[]>([]);
+  const [itemsdndforAdd, setItemsdndForADD] = useState<ComponentType[]>([]);
+  const [inputs, setInputs] = useState<ComponentType[]>([]);
   const [labelselected, setlabelselected] = useState("");
   const [textDispo, setTextDispo] = useState("");
   const [paymentData, setPaymentData] = useState(null);
@@ -289,7 +303,7 @@ export default function Dashboard() {
   );
 
   interface SortableItemProps {
-    item: SiteUrl;
+    item: ComponentType;
     index: number;
     isDragOn: boolean;
     backgroundColor: string;
@@ -345,9 +359,10 @@ export default function Dashboard() {
       switch (component) {
         case "COMPONENT_YOUTUBE_EMB":
           return (
-            <div className="p-5">
+            <div className="my-5">
               <iframe
-                height="mx-auto"
+                className=" rounded-[20px]"
+                width={230}
                 src={`https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-`}
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -358,8 +373,7 @@ export default function Dashboard() {
         case "COMPONENT_TEXT":
           return (
             <p style={{ color: cardcolor }} className="p-5 text-center">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-              Obcaecati architecto{" "}
+              {item.texte}
             </p>
           );
         case "COMPONENT_SPOTIFY":
@@ -383,7 +397,7 @@ export default function Dashboard() {
                 padding: `${padding}px`,
               }}
             >
-              <p className="text-center mt-4">{item.card_name}</p>;
+              <p className="text-center ">{item.texte}</p>
             </div>
           );
         case "COMPONENT_FORM":
@@ -449,7 +463,7 @@ export default function Dashboard() {
       transition,
       padding: "8px",
       borderRadius: "20px ",
-      marginTop: `15px`,
+      marginTop: `45px`,
       marginBottom: `1px`,
       backgroundColor: "rgba(255, 255, 255, 1)",
 
@@ -470,7 +484,7 @@ export default function Dashboard() {
       </div>
 */
     return (
-      <div style={style} className="flex justify-between">
+      <div style={style} className="flex justify-between ">
         <div className="flex items-center gap-7">
           <div
             ref={setNodeRef}
@@ -486,10 +500,10 @@ export default function Dashboard() {
             |||
           </div>
 
-          {ReturnIcon("gofundme")}
+          {ReturnIcon(witchComponent)}
         </div>
 
-        <div className="mt-5 p-5  rounded-[20px] bg-white">
+        <div className="  rounded-[20px] bg-white">
           {returnMainComponent(witchComponent, index, item, setNodeRef)}
         </div>
       </div>
@@ -505,9 +519,7 @@ export default function Dashboard() {
       case "COMPONENT_LINK":
         return (
           <>
-            {" "}
             <p>
-              {" "}
               Link : <span>{index + 1}:</span>
             </p>
             <div className="flex rounded-b-[20px] bg-white p-3 gap-2">
@@ -515,7 +527,7 @@ export default function Dashboard() {
                 type="text"
                 value={
                   inputs.find((input) => input.position === item.position)
-                    ?.card_name || item.card_name
+                    ?.texte || item.texte
                 }
                 onChange={(e) => {
                   handleLabelChangeForSite(item.position, e.target.value);
@@ -534,7 +546,7 @@ export default function Dashboard() {
                 type="text"
                 value={
                   inputs.find((input) => input.position === item.position)
-                    ?.site_url || item.site_url
+                    ?.url || item.url
                 }
                 onChange={(e) => {
                   handleInputChangeForSite(item.position, e.target.value);
@@ -577,11 +589,17 @@ export default function Dashboard() {
           </>
         );
 
-      case "YOUTUBE_EMB":
+      case "COMPONENT_YOUTUBE_EMB":
         return (
           <>
             <Input />
           </>
+        );
+      case "COMPONENT_SEPARATOR":
+        return (
+          <div className="flex ">
+            <Separator className="bg-black my-auto" />
+          </div>
         );
 
       default:
@@ -695,12 +713,14 @@ export default function Dashboard() {
       );
       const newIndex = itemsdnd.findIndex((item) => item.position === over.id);
 
-      const newItems: SiteUrl[] = arrayMove(itemsdnd, oldIndex, newIndex).map(
-        (item, index) => ({
-          ...item,
-          position: index,
-        })
-      );
+      const newItems: ComponentType[] = arrayMove(
+        itemsdnd,
+        oldIndex,
+        newIndex
+      ).map((item, index) => ({
+        ...item,
+        position: index,
+      }));
 
       setItemsdnd(newItems);
       //updatedItem.current = newItems;
@@ -767,7 +787,7 @@ export default function Dashboard() {
   };
   const fetchSiteLink = async () => {
     const { data, error } = await supabase
-      .from("users_site")
+      .from("component")
       .select("*")
       .eq("for_link_url", selectedUrl.current)
       .order("position", { ascending: true });
@@ -911,45 +931,45 @@ export default function Dashboard() {
       } // Critères de sélection pour l'enregistrement à mettre à jour
     );
   };
-  const updateSitePosition = async (dataForUpdate: SiteUrl[]) => {
+  const updateSitePosition = async (dataForUpdate: ComponentType[]) => {
     dataForUpdate.map(
       async (update) => {
         const { data, error } = await supabase
 
-          .from("users_site") // Remplacez par le nom de votre table
+          .from("component") // Remplacez par le nom de votre table
           .update({ position: update.position }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("site_url", update.site_url);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const updateSiteCardName = async (dataForUpdate: SiteUrl[]) => {
-    dataForUpdate.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("users_site") // Remplacez par le nom de votre table
-          .update({ card_name: update.card_name }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("site_url", update.site_url);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const updateSiteUrl = async (dataForUpdate: SiteUrl[]) => {
-    dataForUpdate.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("users_site") // Remplacez par le nom de votre table
-          .update({ site_url: update.site_url }) // Remplacez par la colonne et la valeur à mettre à jour
           .eq("id", update.id);
       } // Critères de sélection pour l'enregistrement à mettre à jour
     );
   };
-  const updateActiveUrl = async (dataForUpdate: SiteUrl[]) => {
+  const updateSiteCardName = async (dataForUpdate: ComponentType[]) => {
     dataForUpdate.map(
       async (update) => {
         const { data, error } = await supabase
 
-          .from("users_site") // Remplacez par le nom de votre table
+          .from("component") // Remplacez par le nom de votre table
+          .update({ texte: update.texte }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("url", update.url);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
+  };
+  const updateSiteUrl = async (dataForUpdate: ComponentType[]) => {
+    dataForUpdate.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("component") // Remplacez par le nom de votre table
+          .update({ url: update.url }) // Remplacez par la colonne et la valeur à mettre à jour
+          .eq("id", update.id);
+      } // Critères de sélection pour l'enregistrement à mettre à jour
+    );
+  };
+  const updateActiveUrl = async (dataForUpdate: ComponentType[]) => {
+    dataForUpdate.map(
+      async (update) => {
+        const { data, error } = await supabase
+
+          .from("component") // Remplacez par le nom de votre table
           .update({ is_active: update.is_active }) // Remplacez par la colonne et la valeur à mettre à jour
           .eq("id", update.id);
       } // Critères de sélection pour l'enregistrement à mettre à jour
@@ -958,15 +978,15 @@ export default function Dashboard() {
   const deleteSiteUrl = async (urlId: string) => {
     const { data, error } = await supabase
 
-      .from("users_site") // Remplacez par le nom de votre table
+      .from("component") // Remplacez par le nom de votre table
       .delete() // Remplacez par la colonne et la valeur à mettre à jour
-      .eq("site_url", urlId);
+      .eq("url", urlId);
     updateSitePosition(itemsdnd);
   };
 
   const addSitesLink = async () => {
     const { data, error } = await supabase
-      .from("users_site")
+      .from("component")
       .insert(itemsdndforAdd);
     if (error) console.log(error);
     console.log(data);
@@ -1020,12 +1040,12 @@ export default function Dashboard() {
   const handleInputChangeForSite = (id: number, value: string) => {
     setItemsdnd((prevInputs) =>
       prevInputs.map((input) =>
-        input.position === id ? { ...input, site_url: value } : input
+        input.position === id ? { ...input, url: value } : input
       )
     );
     setItemsdndForADD((prevInputs) =>
       prevInputs.map((input) =>
-        input.position === id ? { ...input, site_url: value } : input
+        input.position === id ? { ...input, url: value } : input
       )
     );
   };
@@ -1040,17 +1060,17 @@ export default function Dashboard() {
   const handleLabelChangeForSite = (id: number, label: string) => {
     setItemsdnd((prevInputs) =>
       prevInputs.map((input) =>
-        input.position === id ? { ...input, card_name: label } : input
+        input.position === id ? { ...input, texte: label } : input
       )
     );
     setItemsdndForADD((prevInputs) =>
       prevInputs.map((input) =>
-        input.position === id ? { ...input, card_name: label } : input
+        input.position === id ? { ...input, texte: label } : input
       )
     );
   };
 
-  const addItem = () => {
+  const addItem = (witchComponent: string) => {
     const newId = itemsdnd.length;
     setItemsdnd((prevItems) => [
       ...prevItems,
@@ -1058,10 +1078,12 @@ export default function Dashboard() {
         id: v4().slice(0, 5).toString(),
         is_active: true,
         position: newId,
-        card_name: "",
-        site_url: "",
+        type: witchComponent,
+        texte: "",
+
         photo_url: "photo.com",
         click: 0,
+        url: "",
         for_link_url: selectedUrl.current,
       },
     ]);
@@ -1071,10 +1093,12 @@ export default function Dashboard() {
         id: v4().slice(0, 5).toString(),
         is_active: true,
         position: newId,
-        card_name: "",
-        site_url: "",
+        type: witchComponent,
+        texte: "",
+
         photo_url: "photo.com",
         click: 0,
+        url: "",
         for_link_url: selectedUrl.current,
       },
     ]);
@@ -1084,10 +1108,12 @@ export default function Dashboard() {
         id: v4().slice(0, 5).toString(),
         is_active: true,
         position: newId,
-        card_name: "",
-        site_url: "",
+        type: witchComponent,
+        texte: "",
+
         photo_url: "",
         click: 23,
+        url: "",
         for_link_url: selectedUrl.current,
       },
     ]);
@@ -1101,8 +1127,8 @@ export default function Dashboard() {
           item.position === id
             ? {
                 ...item,
-                site_url: input.site_url,
-                card_name: input.card_name,
+                url: input.url,
+                texte: input.texte,
               }
             : item
         )
@@ -1135,6 +1161,7 @@ export default function Dashboard() {
 
   const isLogin = async () => {
     const { data, error } = await supabaseBrowserClient.auth.getUser();
+    //const {data, error} = await supabase.auth.getSession();
     if (error || !data?.user) {
       // route.push("/login");
     }
@@ -1724,7 +1751,7 @@ export default function Dashboard() {
                               margin={cardmargin}
                               title=""
                               url=""
-                              witchComponent="COMPONENT_LINK"
+                              witchComponent={item.type}
                             />
                           </div>
                         ))}
@@ -1735,7 +1762,7 @@ export default function Dashboard() {
                 <p>
                   All items:{" "}
                   {itemsdnd
-                    .map((item) => `${item.position}${item.site_url}`)
+                    .map((item) => `${item.position}${item.url}`)
                     .filter(Boolean)
                     .join(",")}
                 </p>
@@ -1757,14 +1784,106 @@ export default function Dashboard() {
                   Sync :add or update
                 </Button>
                 <br />
-                <Button
-                  variant="bordered"
-                  onPress={() => {
-                    addItem();
-                  }}
-                >
-                  Add link <PlusIcon />
-                </Button>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="bordered">
+                      Add social link <PlusIcon />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Add link</DialogTitle>
+                      <DialogDescription>
+                        Choose your social media link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2">
+                      <div className="grid flex-1 gap-2">
+                        <ScrollArea className="w-full  rounded-md border">
+                          <div className="grig grid-cols-3 gap-3 ">
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_LINK");
+                                }}
+                              >
+                                <LinkIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_SEPARATOR");
+                                }}
+                              >
+                                <SeparatorHorizontalIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_TEXT");
+                                }}
+                              >
+                                <TextIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_SPOTIFY");
+                                }}
+                              >
+                                <BsSpotify />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  //setlabelselected("facebook link");
+                                  // setFacebooklinkdisable(true);
+                                  addItem("COMPONENT_YOUTUBE_EMB");
+                                }}
+                              >
+                                <BsYoutube />
+                              </Button>
+                            </DialogClose>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="flat">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </>
             ) : null}
 
@@ -1989,7 +2108,7 @@ export default function Dashboard() {
                         margin={cardmargin}
                         title=""
                         url=""
-                        witchComponent="COMPONENT_LINK"
+                        witchComponent={item.type}
                       />
                     ))}
                   </SortableContext>
