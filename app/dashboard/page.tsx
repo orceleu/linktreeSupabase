@@ -371,11 +371,7 @@ export default function Dashboard() {
             </div>
           );
         case "COMPONENT_TEXT":
-          return (
-            <p style={{ color: cardcolor }} className="p-5 text-center">
-              {item.texte}
-            </p>
-          );
+          return <p className="p-5 text-center">{item.texte}</p>;
         case "COMPONENT_SPOTIFY":
           return (
             <Spotify
@@ -470,31 +466,17 @@ export default function Dashboard() {
       touchAction: "none", // Important for mobile devices
       userSelect: "none", // Prevents text selection during drag
     };
-    /*
-<div
-        {...listeners}
-        style={{
-          padding: "8px",
-          cursor: "grab",
-          backgroundColor: "#ccc",
-          marginRight: "8px",
-        }}
-      >
-        ||
-      </div>
-*/
+
     return (
       <div style={style} className="flex justify-between ">
-        <div className="flex items-center gap-7">
+        <div className="flex items-center gap-2 lg:gap-7">
           <div
             ref={setNodeRef}
             {...listeners}
             {...attributes}
             style={{
-              padding: "8px",
+              padding: "5px",
               cursor: "grab",
-
-              marginRight: "8px",
             }}
           >
             |||
@@ -519,10 +501,8 @@ export default function Dashboard() {
       case "COMPONENT_LINK":
         return (
           <>
-            <p>
-              Link : <span>{index + 1}:</span>
-            </p>
-            <div className="flex rounded-b-[20px] bg-white p-3 gap-2">
+            <br />
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2">
               <Input
                 type="text"
                 value={
@@ -560,12 +540,12 @@ export default function Dashboard() {
                 onFocusChange={(isFocused) => {
                   !isFocused ? handleInputFocus("") : null;
                 }}
-                placeholder="Ex: My facebook page"
+                placeholder="Your URL"
               />
             </div>
             <br />
             <div className="flex justify-end">
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-2 lg:gap-5">
                 <p className="text-gray-500 text-sm">show on page:</p>
                 <Switch
                   isSelected={item.is_active}
@@ -575,14 +555,15 @@ export default function Dashboard() {
                   }
                 />
                 <Button
-                  variant="flat"
+                  variant="solid"
+                  size="sm"
                   onPress={() => {
                     handleDelete(item.position); //delete item on ui
                     deleteSiteUrl(item.site_url); //delete item on database
                   }}
                   className="bg-red-500 text-white"
                 >
-                  Delete
+                  <TrashIcon />
                 </Button>
               </div>
             </div>
@@ -592,14 +573,167 @@ export default function Dashboard() {
       case "COMPONENT_YOUTUBE_EMB":
         return (
           <>
-            <Input />
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2">
+              <Input
+                ref={setNodeRef}
+                type="text"
+                value={
+                  inputs.find((input) => input.position === item.position)
+                    ?.url || item.url
+                }
+                onChange={(e) => {
+                  handleInputChangeForSite(item.position, e.target.value);
+                  //focus problem
+                  // handleInputFocus((item.position + 50).toString());
+                }}
+                onFocus={() =>
+                  handleInputFocus((item.position + 50).toString())
+                }
+                autoFocus={(item.position + 50).toString() === focusedInputId}
+                onFocusChange={(isFocused) => {
+                  !isFocused ? handleInputFocus("") : null;
+                }}
+                placeholder="youtube video url"
+              />
+              <div className="flex justify-end">
+                <div className="flex items-center gap-2 lg:gap-5">
+                  <p className="text-gray-500 text-sm">show on page:</p>
+                  <Switch
+                    isSelected={item.is_active}
+                    aria-label="Automatic updates"
+                    onChange={() =>
+                      handleIsVisibleChangeForSite(
+                        item.position,
+                        !item.is_active
+                      )
+                    }
+                  />
+                  <Button
+                    variant="solid"
+                    size="sm"
+                    onPress={() => {
+                      handleDelete(item.position); //delete item on ui
+                      deleteSiteUrl(item.site_url); //delete item on database
+                    }}
+                    className="bg-red-500 text-white"
+                  >
+                    <TrashIcon />
+                  </Button>
+                </div>
+              </div>{" "}
+            </div>
+          </>
+        );
+      case "COMPONENT_SPOTIFY":
+        return (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2 ">
+              <Input
+                ref={setNodeRef}
+                type="text"
+                value={
+                  inputs.find((input) => input.position === item.position)
+                    ?.url || item.url
+                }
+                onChange={(e) => {
+                  handleInputChangeForSite(item.position, e.target.value);
+                  //focus problem
+                  // handleInputFocus((item.position + 50).toString());
+                }}
+                onFocus={() =>
+                  handleInputFocus((item.position + 50).toString())
+                }
+                autoFocus={(item.position + 50).toString() === focusedInputId}
+                onFocusChange={(isFocused) => {
+                  !isFocused ? handleInputFocus("") : null;
+                }}
+                placeholder="spotify url"
+              />
+              <div className="flex justify-end">
+                <div className="flex items-center gap-5">
+                  <p className="text-gray-500 text-sm">show on page:</p>
+                  <Switch
+                    isSelected={item.is_active}
+                    aria-label="Automatic updates"
+                    onChange={() =>
+                      handleIsVisibleChangeForSite(
+                        item.position,
+                        !item.is_active
+                      )
+                    }
+                  />
+                  <Button
+                    variant="solid"
+                    size="sm"
+                    onPress={() => {
+                      handleDelete(item.position); //delete item on ui
+                      deleteSiteUrl(item.site_url); //delete item on database
+                    }}
+                    className="bg-red-500 text-white"
+                  >
+                    <TrashIcon />
+                  </Button>
+                </div>
+              </div>{" "}
+            </div>
           </>
         );
       case "COMPONENT_SEPARATOR":
         return (
           <div className="flex ">
-            <Separator className="bg-black my-auto" />
+            <div className="flex justify-end mt-10 ">
+              <Button
+                variant="solid"
+                size="sm"
+                onPress={() => {
+                  handleDelete(item.position); //delete item on ui
+                  deleteSiteUrl(item.site_url); //delete item on database
+                }}
+                className="bg-red-500 text-white"
+              >
+                <TrashIcon />
+              </Button>
+            </div>
           </div>
+        );
+
+      case "COMPONENT_TEXT":
+        return (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2">
+              <Input
+                type="text"
+                value={
+                  inputs.find((input) => input.position === item.position)
+                    ?.texte || item.texte
+                }
+                onChange={(e) => {
+                  handleLabelChangeForSite(item.position, e.target.value);
+                  // handleInputFocus(item.position.toString());
+                }}
+                onFocus={() => handleInputFocus(item.position.toString())}
+                autoFocus={item.position.toString() === focusedInputId}
+                onFocusChange={(isFocused) => {
+                  !isFocused ? handleInputFocus("") : null;
+                }}
+                placeholder="Ex: My facebook page"
+              />
+            </div>
+            <br />
+            <div className="flex justify-end">
+              <Button
+                variant="solid"
+                size="sm"
+                onPress={() => {
+                  handleDelete(item.position); //delete item on ui
+                  deleteSiteUrl(item.site_url); //delete item on database
+                }}
+                className="bg-red-500 text-white"
+              >
+                <TrashIcon />
+              </Button>
+            </div>
+          </>
         );
 
       default:
@@ -625,12 +759,6 @@ export default function Dashboard() {
 
   // Convert the Set to an Array and get the first value.
   const selectedOptionValue = Array.from(selectedOption)[0];
-
-  const reseauxIcons: IconReseaux[] = [
-    { icon: FaFacebook },
-    { icon: FaInstagram },
-    { icon: BsTwitterX },
-  ];
 
   const returnIcon = (pos: string, color: string) => {
     switch (pos) {
@@ -1246,83 +1374,90 @@ export default function Dashboard() {
   }, [usersurl]);
 
   return (
-    <div className="flex h-screen">
-      <div className="w-auto bg-gray-200 h-[700px]">
-        <div className="grid mx-2">
-          <Button
-            size="sm"
-            variant="bordered"
-            className=" mt-5"
-            onPress={() => {
-              setHome(true);
-              setAnalytics(false);
-              setshortlink(false);
-            }}
-          >
-            <HomeIcon />
-          </Button>
-          <Button
-            size="sm"
-            className="my-5 "
-            variant="bordered"
-            onPress={() => {
-              setHome(false);
-              setAnalytics(true);
-              setshortlink(false);
-            }}
-          >
-            <BarChart4 />
-          </Button>
-          <Button
-            size="sm"
-            variant="bordered"
-            onPress={() => {
-              setHome(false);
-              setAnalytics(false);
-              setshortlink(true);
-            }}
-          >
-            <Link2Icon />
-          </Button>
+    <>
+      <div className="hidden lg:flex h-screen">
+        <div className=" w-auto bg-gray-200 h-[700px]">
+          <div className="grid mx-2">
+            <Button
+              size="sm"
+              variant="bordered"
+              className=" mt-5"
+              onPress={() => {
+                setHome(true);
+                setAnalytics(false);
+                setshortlink(false);
+              }}
+            >
+              <HomeIcon />
+            </Button>
+            <Button
+              size="sm"
+              className="my-5 "
+              variant="bordered"
+              onPress={() => {
+                setHome(false);
+                setAnalytics(true);
+                setshortlink(false);
+              }}
+            >
+              <BarChart4 />
+            </Button>
+            <Button
+              size="sm"
+              variant="bordered"
+              onPress={() => {
+                setHome(false);
+                setAnalytics(false);
+                setshortlink(true);
+              }}
+            >
+              <Link2Icon />
+            </Button>
+          </div>
+
+          <div className=" fixed bottom-5 mx-2">
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <Avatar
+                  isBordered
+                  as="button"
+                  className="transition-transform"
+                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+                />
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Profile Actions" variant="flat">
+                <DropdownItem key="profile" className="h-14 gap-2">
+                  <p className="font-semibold">Signed in as</p>
+                  <p className="font-semibold">{email}</p>
+                </DropdownItem>
+                <DropdownItem key="settings">My Settings</DropdownItem>
+                <DropdownItem key="team_settings">Team Settings</DropdownItem>
+                <DropdownItem key="analytics">Analytics</DropdownItem>
+                <DropdownItem key="system">System</DropdownItem>
+                <DropdownItem key="configurations">Configurations</DropdownItem>
+                <DropdownItem key="help_and_feedback">
+                  Help & Feedback
+                </DropdownItem>
+                <DropdownItem key="logout" color="danger" onClick={logOut}>
+                  Log Out
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </div>
         </div>
 
-        <div className=" fixed bottom-5 mx-2">
-          <Dropdown placement="bottom-end">
-            <DropdownTrigger>
-              <Avatar
-                isBordered
-                as="button"
-                className="transition-transform"
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              />
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Profile Actions" variant="flat">
-              <DropdownItem key="profile" className="h-14 gap-2">
-                <p className="font-semibold">Signed in as</p>
-                <p className="font-semibold">{email}</p>
-              </DropdownItem>
-              <DropdownItem key="settings">My Settings</DropdownItem>
-              <DropdownItem key="team_settings">Team Settings</DropdownItem>
-              <DropdownItem key="analytics">Analytics</DropdownItem>
-              <DropdownItem key="system">System</DropdownItem>
-              <DropdownItem key="configurations">Configurations</DropdownItem>
-              <DropdownItem key="help_and_feedback">
-                Help & Feedback
-              </DropdownItem>
-              <DropdownItem key="logout" color="danger" onClick={logOut}>
-                Log Out
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
+        <div className="hidden lg:flex w-full ">
+          {isHome ? <>{home()}</> : null}
+          {isanalytics ? <>{analytics()}</> : null}
+          {isshortlink ? <>{shortlink()}</> : null}
         </div>
       </div>
-
-      <div className="flex w-full">
-        {isHome ? <>{home()}</> : null}
+      <div className="lg:hidden flex w-full">
+        {isHome ? <>{homeForMobile()}</> : null}
         {isanalytics ? <>{analytics()}</> : null}
         {isshortlink ? <>{shortlink()}</> : null}
       </div>
-    </div>
+    </>
   );
 
   function home() {
@@ -1626,8 +1761,8 @@ export default function Dashboard() {
                 </div>
                 <Separator className="my-5" />
 
-                <p className="text-center font-bold text-3xl my-3">
-                  all your link
+                <p className="text-center  text-3xl my-3">
+                  Social reseaux link
                 </p>
                 {reseauxitems.map((item, index) => (
                   <div
@@ -1657,74 +1792,48 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
-                {reseauxitems.map((item, index) => (
-                  <div
-                    key={index}
-                    className="p-5 gap-3 my-2 bg-white rounded-[20px]"
-                  >
-                    <p key={index + 1} className=" font-bold">
-                      reseaux Link :<span>{index}</span>
-                    </p>
-                    <div
-                      key={index + 2}
-                      className="flex items-center gap-2 my-2"
-                    >
-                      <p key={index + 3}>
-                        {returnComponent(
-                          item.icon,
-                          "rgba(0, 0, 0, 1)",
-                          "https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
-                        )}
-                      </p>
 
-                      <Input key={index + 4} value={item.reseaux_url} />
+                <br />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="bordered" size="sm">
+                      add reseaux Icon
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>choose your reseaux Icon</DialogTitle>
+                      <DialogDescription>
+                        Choose your social media link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div>
+                      <Button>click</Button>
+                      <Button>click</Button>
+                      <Button>click</Button>
                     </div>
-                    <div key={index + 5} className="flex justify-end">
-                      <div key={index + 6} className="flex items-center gap-2">
-                        <p key={index + 7} className="text-gray-500 text-sm">
-                          show on page:
-                        </p>
-                        <Switch key={index + 8} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {reseauxitems.map((item, index) => (
-                  <div
-                    key={index}
-                    className="p-5 gap-3 my-2 bg-white rounded-[20px]"
-                  >
-                    <p key={index + 1} className=" font-bold">
-                      reseaux Link :<span>{index}</span>
-                    </p>
-                    <div
-                      key={index + 2}
-                      className="flex items-center gap-2 my-2"
-                    >
-                      <p key={index + 3}>
-                        {returnIcon(item.icon, "rgba(0, 0, 0, 1)")}
-                      </p>
-
-                      <Input key={index + 4} value={item.reseaux_url} />
-                    </div>
-                    <div key={index + 5} className="flex justify-end">
-                      <div key={index + 6} className="flex items-center gap-2">
-                        <p key={index + 7} className="text-gray-500 text-sm">
-                          show on page:
-                        </p>
-                        <Switch key={index + 8} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="bordered">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Separator className="my-5" />
                 <a
                   href="https://emojipedia.org"
                   className="text-fuchsia-700 font-bold underline"
                 >
                   Go to add emoji🥇📕😎☀️
                 </a>
+                <p className="my-3 text-3xl text-center ">
+                  {" "}
+                  All Block:(
+                  <span className="text-fuchsia-700">{itemsdnd.length}</span>)
+                </p>
+
                 <div className="mt-10">
                   <div>
                     {" "}
@@ -1759,8 +1868,8 @@ export default function Dashboard() {
                     </DndContext>
                   </div>
                 </div>
+
                 <p>
-                  All items:{" "}
                   {itemsdnd
                     .map((item) => `${item.position}${item.url}`)
                     .filter(Boolean)
@@ -1788,15 +1897,15 @@ export default function Dashboard() {
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="bordered">
-                      Add social link <PlusIcon />
+                      Add block <PlusIcon />
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Add link</DialogTitle>
-                      <DialogDescription>
-                        Choose your social media link.
-                      </DialogDescription>
+                      <DialogTitle>
+                        Add link,text,youtube video,spotify,separator and more{" "}
+                      </DialogTitle>
+                      <DialogDescription>Choose.</DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center space-x-2">
                       <div className="grid flex-1 gap-2">
@@ -2117,6 +2226,646 @@ export default function Dashboard() {
             </ScrollArea>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  function homeForMobile() {
+    return (
+      <div className="flex w-full">
+        <ScrollArea className="w-full  bg-gray-100 p-4 lg:p-10 ">
+          <br />
+
+          <p className="fixed top-2 text-blue-600 font-bold text-3xl ">
+            ssply.
+            <span className="text-emerald-500 font-bold text-3xl">bio</span>
+          </p>
+
+          <div className="grid mx-auto">
+            <Tabs
+              aria-label="Options"
+              color="primary"
+              variant="underlined"
+              className="my-5"
+              onSelectionChange={(key: any) => {
+                console.log(key);
+
+                if (key == "createlink") {
+                  setbuttonLayoutShow(false);
+                  setgridLayoutShow(true);
+                  setappearanceLayoutShow(false);
+                } else if (key == "grid") {
+                  setbuttonLayoutShow(true);
+                  setgridLayoutShow(false);
+                  setappearanceLayoutShow(false);
+                } else if (key == "appearance") {
+                  setbuttonLayoutShow(false);
+                  setgridLayoutShow(false);
+                  setappearanceLayoutShow(true);
+                }
+              }}
+            >
+              <Tab
+                key="createlink"
+                title={
+                  <div className="flex items-center space-x-2">
+                    <span>Create bio link</span>
+                  </div>
+                }
+              />
+              <Tab
+                key="grid"
+                title={
+                  <div className="flex items-center space-x-2">
+                    <span>Grid</span>
+                  </div>
+                }
+              />
+              <Tab
+                key="appearance"
+                title={
+                  <div className="flex items-center space-x-2">
+                    <span>Appearance</span>
+                  </div>
+                }
+              />
+            </Tabs>
+
+            {buttonlayoutShow ? <>{ButtonLayout()}</> : null}
+            {gridlayoutShow ? (
+              <>
+                <p className="my-5">All link</p>
+                <ButtonGroup variant="flat">
+                  <Button>{labelsMap[selectedOptionValue]}</Button>
+                  <Dropdown placement="bottom-end">
+                    <DropdownTrigger>
+                      <Button isIconOnly>
+                        <ChevronDownIcon />
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      disallowEmptySelection
+                      aria-label="Merge options"
+                      selectedKeys={selectedOption}
+                      selectionMode="single"
+                      onSelectionChange={(key: any) => setSelectedOption(key)}
+                      className="max-w-[300px]"
+                    >
+                      <DropdownItem
+                        key="merge"
+                        description={descriptionsMap["merge"]}
+                      >
+                        {labelsMap["merge"]}
+                      </DropdownItem>
+                      <DropdownItem
+                        key="squash"
+                        description={descriptionsMap["squash"]}
+                      >
+                        {labelsMap["squash"]}
+                      </DropdownItem>
+                      <DropdownItem
+                        key="rebase"
+                        description={descriptionsMap["rebase"]}
+                      >
+                        {labelsMap["rebase"]}
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                </ButtonGroup>
+                <br />
+                {yourlink.map((link, index) => (
+                  <p
+                    key={index}
+                    onClick={() => {
+                      selectedUrl.current = link.link_url;
+                      setselectedLink(link.link_url);
+                      setphotoUrl(link.photo_url);
+                      setname(link.user_name);
+                      setdesc(link.user_desc);
+                      fetchSiteLink();
+                    }}
+                    className="text-blue-600"
+                  >
+                    {link.link_url}
+                  </p>
+                ))}
+                <div>
+                  {" "}
+                  <div className="flex justify-end">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="bordered" size="sm">
+                          Create new link
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Create new Link</DialogTitle>
+                          <DialogDescription>
+                            Create a new link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          <Input
+                            value={newUrl}
+                            maxLength={15}
+                            onChange={onChangeNewUrl}
+                            startContent={
+                              <div className="pointer-events-none flex items-center">
+                                <p className="text-default-400 text-small">
+                                  https://linktree/
+                                </p>
+                              </div>
+                            }
+                          />
+                          <p>
+                            dispo? <span>{textDispo}</span>
+                          </p>
+                          <br />
+                          <Input
+                            value={newname}
+                            onChange={onChangeNewname}
+                            placeholder="your name"
+                          />
+                          <Input
+                            value={newdesc}
+                            maxLength={100}
+                            onChange={onChangeNewdesc}
+                            placeholder="your description (optional)"
+                            className="my-5"
+                          />
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                          <DialogClose asChild>
+                            <Button type="button" variant="bordered">
+                              Close
+                            </Button>
+                          </DialogClose>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="bordered"
+                              onClick={() =>
+                                addLinkUrl(newname, newdesc, newUrl)
+                              }
+                              className=" fixed bottom-2  bg-green-500 "
+                            >
+                              add
+                            </Button>
+                          </div>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <form onSubmit={uploadProfileImg}>
+                    <div className="grid w-[320px] items-center gap-1.5">
+                      <label htmlFor="picture">
+                        Upload your Profile(png/jpeg)
+                      </label>
+                      <Input id="picture" type="file" />
+                    </div>
+                    <Button type="submit" className="my-2">
+                      upload
+                    </Button>
+                  </form>
+                  <div className="flex justify-end">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="bordered" size="sm">
+                          bg color
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>
+                            pick background color: <span>{bgcolor1}</span>-
+                            <span>{bgcolor2}</span>
+                          </DialogTitle>
+                          <DialogDescription>
+                            Choose your social media link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          <RgbaStringColorPicker
+                            color={bgcolor1}
+                            onChange={setbgColor1}
+                          />
+                          <RgbaStringColorPicker
+                            color={bgcolor2}
+                            onChange={setbgColor2}
+                          />
+                          ;
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                          <DialogClose asChild>
+                            <Button type="button" variant="bordered">
+                              Close
+                            </Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <br />
+                  <Input
+                    value={value}
+                    maxLength={15}
+                    onChange={onChange}
+                    placeholder={selectedlink}
+                    startContent={
+                      <div className="pointer-events-none flex items-center">
+                        <p className="text-default-400 text-small">
+                          https://linktree/
+                        </p>
+                      </div>
+                    }
+                  />
+                </div>
+                <br />
+                <div className="rounded-[20px] p-1 lg:p-5 bg-white">
+                  <div className="flex justify-end">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="bordered" size="sm">
+                          Name color
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>
+                            pick color<span>{color1}</span>
+                          </DialogTitle>
+                          <DialogDescription>
+                            Choose your social media link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div>
+                          <RgbaStringColorPicker
+                            color={color1}
+                            onChange={setColor}
+                          />
+                          ;
+                        </div>
+                        <DialogFooter className="sm:justify-start">
+                          <DialogClose asChild>
+                            <Button type="button" variant="bordered">
+                              Close
+                            </Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <br />
+                  <Input
+                    value={name}
+                    onChange={onChangename}
+                    placeholder="your name"
+                  />
+                  <Input
+                    value={desc}
+                    maxLength={100}
+                    onChange={onChangedesc}
+                    placeholder="your description"
+                    className="my-5"
+                  />
+                </div>
+                <Separator className="my-5" />
+
+                <p className="text-center  text-3xl my-3">
+                  Social reseaux link
+                </p>
+                {reseauxitems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-5 gap-3 my-2 bg-white rounded-[20px]"
+                  >
+                    <p key={index + 1} className=" font-bold">
+                      reseaux Link :<span>{index}</span>
+                    </p>
+                    <div
+                      key={index + 2}
+                      className="flex items-center gap-2 my-2"
+                    >
+                      <p key={index + 3}>
+                        {returnIcon(item.icon, "rgba(0, 0, 0, 1)")}
+                      </p>
+
+                      <Input key={index + 4} value={item.reseaux_url} />
+                    </div>
+                    <div key={index + 5} className="flex justify-end">
+                      <div key={index + 6} className="flex items-center gap-2">
+                        <p key={index + 7} className="text-gray-500 text-sm">
+                          show on page:
+                        </p>
+                        <Switch key={index + 8} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <br />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="bordered" size="sm">
+                      add reseaux Icon
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>choose your reseaux Icon</DialogTitle>
+                      <DialogDescription>
+                        Choose your social media link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div>
+                      <Button>click</Button>
+                      <Button>click</Button>
+                      <Button>click</Button>
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="bordered">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Separator className="my-5" />
+                <a
+                  href="https://emojipedia.org"
+                  className="text-fuchsia-700 font-bold underline"
+                >
+                  Go to add emoji🥇📕😎☀️
+                </a>
+                <p className="my-3 text-3xl text-center ">
+                  {" "}
+                  All Block:(
+                  <span className="text-fuchsia-700">{itemsdnd.length}</span>)
+                </p>
+
+                <div className="mt-10">
+                  <div>
+                    {" "}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={itemsdnd.map((item) => item.position)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {itemsdnd.map((item: any, index: any) => (
+                          <div key={index + 1}>
+                            <MainSortableItem
+                              key={item.position}
+                              item={item}
+                              index={index}
+                              isDragOn={true}
+                              backgroundColor={cardcolor}
+                              borderRadius={cardBorderRadius}
+                              borderRadiusColor={cardBorderRadiusColor}
+                              padding={cardPadding}
+                              margin={cardmargin}
+                              title=""
+                              url=""
+                              witchComponent={item.type}
+                            />
+                          </div>
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                </div>
+
+                <p>
+                  {itemsdnd
+                    .map((item) => `${item.position}${item.url}`)
+                    .filter(Boolean)
+                    .join(",")}
+                </p>
+                <br />
+                <Button
+                  onPress={() => {
+                    //addItemdata();
+                    if (itemsdndforAdd.length > 0) {
+                      additemTodatabase();
+                      //if detect update ,Update in the function
+                      addSitesLink();
+                    } else {
+                      updateSiteCardName(itemsdnd);
+                      updateSiteUrl(itemsdnd);
+                      updateActiveUrl(itemsdnd);
+                    }
+                  }}
+                >
+                  Sync :add or update
+                </Button>
+                <br />
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="bordered">
+                      Add block <PlusIcon />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        Add link,text,youtube video,spotify,separator and more{" "}
+                      </DialogTitle>
+                      <DialogDescription>Choose.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center space-x-2">
+                      <div className="grid flex-1 gap-2">
+                        <ScrollArea className="w-full  rounded-md border">
+                          <div className="grig grid-cols-3 gap-3 ">
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_LINK");
+                                }}
+                              >
+                                <LinkIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_SEPARATOR");
+                                }}
+                              >
+                                <SeparatorHorizontalIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_TEXT");
+                                }}
+                              >
+                                <TextIcon />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  addItem("COMPONENT_SPOTIFY");
+                                }}
+                              >
+                                <BsSpotify />
+                              </Button>
+                            </DialogClose>
+                            <DialogClose asChild>
+                              <Button
+                                variant="bordered"
+                                className="mx-2 my-2"
+                                onClick={() => {
+                                  //setlabelselected("facebook link");
+                                  // setFacebooklinkdisable(true);
+                                  addItem("COMPONENT_YOUTUBE_EMB");
+                                }}
+                              >
+                                <BsYoutube />
+                              </Button>
+                            </DialogClose>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                            <Button className="mx-2 my-2">click</Button>
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                    <DialogFooter className="sm:justify-start">
+                      <DialogClose asChild>
+                        <Button type="button" variant="flat">
+                          Close
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </>
+            ) : null}
+
+            {appearrancelayoutShow ? (
+              <>
+                <div className="grid">
+                  <p className="font-bold my-5">
+                    Background color: <span>{bgcolor1}</span> -
+                    <span>{bgcolor2}</span>
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <RgbaStringColorPicker
+                      color={bgcolor1}
+                      onChange={setbgColor1}
+                    />
+                    <RgbaStringColorPicker
+                      color={bgcolor2}
+                      onChange={setbgColor2}
+                    />
+                    ;
+                  </div>
+                  <Slider
+                    label="Temperature"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setColorDegres}
+                    value={colorDegres}
+                    className="max-w-md"
+                  />
+                  <p className="font-bold my-5">
+                    Name color: <span>{color1}</span>
+                  </p>
+
+                  <RgbaStringColorPicker color={color1} onChange={setColor} />
+                  <p className="font-bold my-5">
+                    Card color: <span>{cardcolor}</span>
+                  </p>
+
+                  <RgbaStringColorPicker
+                    color={cardcolor}
+                    onChange={setCardColor}
+                  />
+
+                  <p className="font-bold my-5">
+                    Card Outline color: <span>{cardBorderRadiusColor}</span>
+                  </p>
+
+                  <RgbaStringColorPicker
+                    color={cardBorderRadiusColor}
+                    onChange={setCardBorderRadiusColor}
+                  />
+
+                  <p className="font-bold my-5">
+                    Margin: <span>{cardmargin}</span>
+                  </p>
+
+                  <Slider
+                    label="Margin"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setCardmargin}
+                    value={cardmargin}
+                    className="max-w-md"
+                  />
+                  <p className="font-bold my-5">
+                    padding: <span>{cardPadding}</span>
+                  </p>
+
+                  <Slider
+                    label="Padding"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setCardPadding}
+                    value={cardPadding}
+                    className="max-w-md"
+                  />
+                  <p className="font-bold my-5">
+                    Border Radius: <span>{cardBorderRadius}</span>
+                  </p>
+
+                  <Slider
+                    label="Border Radius"
+                    step={1}
+                    maxValue={90}
+                    minValue={0}
+                    defaultValue={45}
+                    onChange={setCardBorderRadius}
+                    value={cardBorderRadius}
+                    className="max-w-md"
+                  />
+                </div>
+              </>
+            ) : null}
+
+            <br />
+          </div>
+        </ScrollArea>
       </div>
     );
   }
