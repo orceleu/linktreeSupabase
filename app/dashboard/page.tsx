@@ -438,7 +438,25 @@ export default function Dashboard() {
     }
   }, [focusedInputId, inputs]);
   // main item
+  const [isHolding, setIsHolding] = useState("");
 
+  const startHold = () => {
+    setIsHolding("none");
+    //executeFunction();
+  };
+
+  const clearHold = () => {
+    setIsHolding("");
+  };
+  const handleTouchStart = (e: any) => {
+    e.preventDefault();
+    startHold();
+  };
+
+  const handleTouchEnd = (e: any) => {
+    e.preventDefault();
+    clearHold();
+  };
   const MainSortableItem: React.FC<SortableItemProps> = ({
     item,
     index,
@@ -459,17 +477,17 @@ export default function Dashboard() {
       transition,
       padding: "8px",
       borderRadius: "20px ",
-      marginTop: `45px`,
+      marginTop: `20px`,
       marginBottom: `1px`,
       backgroundColor: "rgba(255, 255, 255, 1)",
 
-      touchAction: "none", // Important for mobile devices
+      touchAction: isHolding, // Important for mobile devices
       userSelect: "none", // Prevents text selection during drag
     };
 
     return (
       <div style={style} className="flex justify-between ">
-        <div className="flex items-center gap-2 lg:gap-7">
+        <div className="flex items-center gap-2 lg:gap-7 ">
           <div
             ref={setNodeRef}
             {...listeners}
@@ -478,6 +496,8 @@ export default function Dashboard() {
               padding: "5px",
               cursor: "grab",
             }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             |||
           </div>
@@ -485,7 +505,7 @@ export default function Dashboard() {
           {ReturnIcon(witchComponent)}
         </div>
 
-        <div className="  rounded-[20px] bg-white">
+        <div>
           {returnMainComponent(witchComponent, index, item, setNodeRef)}
         </div>
       </div>
@@ -502,7 +522,7 @@ export default function Dashboard() {
         return (
           <>
             <br />
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:p-3 bg-white gap-2">
               <Input
                 type="text"
                 value={
@@ -559,7 +579,7 @@ export default function Dashboard() {
                   size="sm"
                   onPress={() => {
                     handleDelete(item.position); //delete item on ui
-                    deleteSiteUrl(item.site_url); //delete item on database
+                    deleteSiteUrl(item.id); //delete item on database
                   }}
                   className="bg-red-500 text-white"
                 >
@@ -573,7 +593,7 @@ export default function Dashboard() {
       case "COMPONENT_YOUTUBE_EMB":
         return (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white  gap-2">
               <Input
                 ref={setNodeRef}
                 type="text"
@@ -613,7 +633,7 @@ export default function Dashboard() {
                     size="sm"
                     onPress={() => {
                       handleDelete(item.position); //delete item on ui
-                      deleteSiteUrl(item.site_url); //delete item on database
+                      deleteSiteUrl(item.id); //delete item on database
                     }}
                     className="bg-red-500 text-white"
                   >
@@ -627,7 +647,7 @@ export default function Dashboard() {
       case "COMPONENT_SPOTIFY":
         return (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2 ">
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white  gap-2 ">
               <Input
                 ref={setNodeRef}
                 type="text"
@@ -650,7 +670,7 @@ export default function Dashboard() {
                 placeholder="spotify url"
               />
               <div className="flex justify-end">
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-2 lg:gap-5">
                   <p className="text-gray-500 text-sm">show on page:</p>
                   <Switch
                     isSelected={item.is_active}
@@ -667,7 +687,7 @@ export default function Dashboard() {
                     size="sm"
                     onPress={() => {
                       handleDelete(item.position); //delete item on ui
-                      deleteSiteUrl(item.site_url); //delete item on database
+                      deleteSiteUrl(item.id); //delete item on database
                     }}
                     className="bg-red-500 text-white"
                   >
@@ -687,7 +707,7 @@ export default function Dashboard() {
                 size="sm"
                 onPress={() => {
                   handleDelete(item.position); //delete item on ui
-                  deleteSiteUrl(item.site_url); //delete item on database
+                  deleteSiteUrl(item.id); //delete item on database
                 }}
                 className="bg-red-500 text-white"
               >
@@ -700,7 +720,7 @@ export default function Dashboard() {
       case "COMPONENT_TEXT":
         return (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white p-3 gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white  gap-2">
               <Input
                 type="text"
                 value={
@@ -726,7 +746,7 @@ export default function Dashboard() {
                 size="sm"
                 onPress={() => {
                   handleDelete(item.position); //delete item on ui
-                  deleteSiteUrl(item.site_url); //delete item on database
+                  deleteSiteUrl(item.id); //delete item on database
                 }}
                 className="bg-red-500 text-white"
               >
@@ -1103,13 +1123,15 @@ export default function Dashboard() {
       } // Critères de sélection pour l'enregistrement à mettre à jour
     );
   };
-  const deleteSiteUrl = async (urlId: string) => {
+  const deleteSiteUrl = async (id: string) => {
     const { data, error } = await supabase
 
       .from("component") // Remplacez par le nom de votre table
       .delete() // Remplacez par la colonne et la valeur à mettre à jour
-      .eq("url", urlId);
+      .eq("id", id);
     updateSitePosition(itemsdnd);
+    if (data) console.log(data);
+    if (error) console.log(error);
   };
 
   const addSitesLink = async () => {
@@ -1869,12 +1891,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <p>
-                  {itemsdnd
-                    .map((item) => `${item.position}${item.url}`)
-                    .filter(Boolean)
-                    .join(",")}
-                </p>
                 <br />
                 <Button
                   onPress={() => {
@@ -2268,7 +2284,7 @@ export default function Dashboard() {
               <Tab
                 key="createlink"
                 title={
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <span>Create bio link</span>
                   </div>
                 }
@@ -2276,7 +2292,7 @@ export default function Dashboard() {
               <Tab
                 key="grid"
                 title={
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <span>Grid</span>
                   </div>
                 }
@@ -2284,7 +2300,7 @@ export default function Dashboard() {
               <Tab
                 key="appearance"
                 title={
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <span>Appearance</span>
                   </div>
                 }
@@ -2355,15 +2371,13 @@ export default function Dashboard() {
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="bordered" size="sm">
-                          Create new link
+                          <PlusIcon /> link
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                           <DialogTitle>Create new Link</DialogTitle>
-                          <DialogDescription>
-                            Create a new link.
-                          </DialogDescription>
+                          <DialogDescription>link.</DialogDescription>
                         </DialogHeader>
                         <div>
                           <Input
@@ -2417,10 +2431,8 @@ export default function Dashboard() {
                     </Dialog>
                   </div>
                   <form onSubmit={uploadProfileImg}>
-                    <div className="grid w-[320px] items-center gap-1.5">
-                      <label htmlFor="picture">
-                        Upload your Profile(png/jpeg)
-                      </label>
+                    <div className="grid w-[200px] items-center gap-1.5">
+                      <label htmlFor="picture">Upload Profile(png/jpeg)</label>
                       <Input id="picture" type="file" />
                     </div>
                     <Button type="submit" className="my-2">
@@ -2639,12 +2651,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <p>
-                  {itemsdnd
-                    .map((item) => `${item.position}${item.url}`)
-                    .filter(Boolean)
-                    .join(",")}
-                </p>
                 <br />
                 <Button
                   onPress={() => {
