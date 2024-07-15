@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 
-import { Database } from "./database.type";
+import React, { useMemo, memo, useCallback } from "react";
 import { supabase } from "./supabase/supabaseInstance";
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
@@ -20,8 +20,40 @@ import {
 } from "@nextui-org/react";
 import Link from "next/link";
 // Create a single supabase client for interacting with your database
+
+interface CounterProps {
+  count: number;
+  onIncrement: () => void;
+}
+
+const Counter: React.FC<CounterProps> = memo(({ count, onIncrement }) => {
+  console.log("Rendering Counter:", count);
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={onIncrement}>Increment</button>
+    </div>
+  );
+});
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [count1, setCount1] = useState<number>(0);
+  const [count2, setCount2] = useState<number>(0);
+
+  const incrementCount1 = useCallback(() => {
+    setCount1((prevCount) => prevCount + 1);
+  }, []);
+
+  const incrementCount2 = useCallback(() => {
+    setCount2((prevCount) => prevCount + 1);
+  }, []);
+
+  const memoizedValue = useMemo(() => {
+    console.log("Calculating memoized value");
+    return count1 * 2;
+  }, [count1]);
+
   const menuItems = [
     "Profile",
     "Dashboard",
@@ -183,6 +215,13 @@ export default function Home() {
             <div className="rounded-sm shadow-md  h-[300px] w-[600px] bg-white"></div>
           </div>
         </div>
+      </div>
+      <div>
+        <h1>Counter 1</h1>
+        <Counter count={count1} onIncrement={incrementCount1} />
+        <h1>Counter 2</h1>
+        <Counter count={count2} onIncrement={incrementCount2} />
+        <p>Memoized Value: {memoizedValue}</p>
       </div>
     </main>
   );

@@ -30,7 +30,15 @@ import {
   useState,
 } from "react";
 import { Database } from "../database.type";
-//import { Button } from "@/components/ui/button";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@nextui-org/react";
+
 import Image from "next/image";
 import undraw_male_avatar_g98d from "../../public/undraw_male_avatar_g98d.svg";
 import { Slider, Snippet } from "@nextui-org/react";
@@ -76,8 +84,11 @@ import {
   FacebookIcon,
   InstagramIcon,
   LinkIcon,
+  LockIcon,
+  LockOpenIcon,
   PlusIcon,
   SeparatorHorizontalIcon,
+  SmartphoneIcon,
   SnailIcon,
   TextIcon,
   TrashIcon,
@@ -202,7 +213,8 @@ export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [selectedlink, setselectedLink] = useState("");
   const [selectedKeys, setSelectedKeys] = useState("text");
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [size, setSize] = useState("full");
   const selectedValue = useMemo(
     () => Array.from(selectedKeys).join(", ").replaceAll("_", " "),
     [selectedKeys]
@@ -390,7 +402,7 @@ export default function Dashboard() {
                 border: `1px solid ${borderRadiusColor}`,
                 borderRadius: `${borderRadius}px`,
                 margin: `${margin}px`,
-                width: "230px",
+                width: "200px",
                 padding: `${padding}px`,
               }}
             >
@@ -583,13 +595,12 @@ export default function Dashboard() {
                   }
                 />
                 <Button
-                  variant="solid"
+                  variant="ghost"
                   size="sm"
                   onPress={() => {
                     handleDelete(item.position); //delete item on ui
                     deleteSiteUrl(item.id); //delete item on database
                   }}
-                  className="bg-red-500 text-white"
                 >
                   <TrashIcon />
                 </Button>
@@ -635,13 +646,12 @@ export default function Dashboard() {
                     }
                   />
                   <Button
-                    variant="solid"
+                    variant="ghost"
                     size="sm"
                     onPress={() => {
                       handleDelete(item.position); //delete item on ui
                       deleteSiteUrl(item.id); //delete item on database
                     }}
-                    className="bg-red-500 text-white"
                   >
                     <TrashIcon />
                   </Button>
@@ -687,13 +697,12 @@ export default function Dashboard() {
                     }
                   />
                   <Button
-                    variant="solid"
+                    variant="ghost"
                     size="sm"
                     onPress={() => {
                       handleDelete(item.position); //delete item on ui
                       deleteSiteUrl(item.id); //delete item on database
                     }}
-                    className="bg-red-500 text-white"
                   >
                     <TrashIcon />
                   </Button>
@@ -707,13 +716,12 @@ export default function Dashboard() {
           <div className="flex ">
             <div className="flex justify-end mt-10 ">
               <Button
-                variant="solid"
+                variant="ghost"
                 size="sm"
                 onPress={() => {
                   handleDelete(item.position); //delete item on ui
                   deleteSiteUrl(item.id); //delete item on database
                 }}
-                className="bg-red-500 text-white"
               >
                 <TrashIcon />
               </Button>
@@ -744,13 +752,12 @@ export default function Dashboard() {
             <br />
             <div className="flex justify-end">
               <Button
-                variant="solid"
+                variant="ghost"
                 size="sm"
                 onPress={() => {
                   handleDelete(item.position); //delete item on ui
                   deleteSiteUrl(item.id); //delete item on database
                 }}
-                className="bg-red-500 text-white"
               >
                 <TrashIcon />
               </Button>
@@ -2773,9 +2780,126 @@ export default function Dashboard() {
                 </Dialog>
               </>
             ) : null}
-            <Button onPress={lockUnlock} className="fixed bottom-2 end-3">
-              lock screen{" "}
-            </Button>
+
+            <Modal size="full" isOpen={isOpen} onClose={onClose}>
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col ">
+                      Modal Title
+                    </ModalHeader>
+                    <ModalBody>
+                      <ScrollArea
+                        className="  w-full  h-[500px] border-gray-600 rounded-3xl shadow-lg p-2 border-[7px]"
+                        style={{
+                          background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
+                        }}
+                      >
+                        <div className="grid mx-auto">
+                          {photoUrl && (
+                            <Image
+                              src={photoUrl}
+                              alt="profil"
+                              width={100}
+                              height={100}
+                              className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
+                            />
+                          )}
+
+                          <p
+                            className="text-xl text-center"
+                            style={{ color: color1 }}
+                          >
+                            @<span>{name} </span>
+                          </p>
+                          <div className="flex justify-center">
+                            {" "}
+                            <BsFillPatchCheckFill className="text-blue-400 ml-16" />
+                          </div>
+
+                          <p className="my-5 mx-10 text-gray-500 text-center text-[12px] ">
+                            {desc}
+                          </p>
+                          <div className="flex justify-center">
+                            <div className="flex items-center gap-4 my-1">
+                              <Badge variant="outline">
+                                <BsPhone />
+                                Outline
+                              </Badge>
+                              <Badge variant="outline">
+                                <span>
+                                  <FaLocationArrow />
+                                </span>
+                                Outline
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-center">
+                            <div className="flex items-center gap-2">
+                              {reseauxitems.map((item, index) => (
+                                <Link
+                                  href={item.reseaux_url}
+                                  target="_blank"
+                                  key={index}
+                                >
+                                  {returnIcon(item.icon, color1)}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                          >
+                            <SortableContext
+                              items={itemsdnd.map((item) => item.position)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {itemsdnd.map((item, index) => (
+                                <SortableItem
+                                  key={item.position}
+                                  item={item}
+                                  index={index}
+                                  isDragOn={true}
+                                  backgroundColor={cardcolor}
+                                  borderRadius={cardBorderRadius}
+                                  borderRadiusColor={cardBorderRadiusColor}
+                                  padding={cardPadding}
+                                  margin={cardmargin}
+                                  title=""
+                                  url=""
+                                  witchComponent={item.type}
+                                />
+                              ))}
+                            </SortableContext>
+                          </DndContext>
+                        </div>
+                      </ScrollArea>
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button color="danger" variant="light" onPress={onClose}>
+                        Close
+                      </Button>
+                      <Button color="primary" onPress={onClose}>
+                        Action
+                      </Button>
+                    </ModalFooter>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
+            <div className="grid gap-5 fixed bottom-2 end-3">
+              <Button onPress={() => onOpen()}>
+                <SmartphoneIcon />
+              </Button>
+              <Button onPress={lockUnlock}>
+                {isHolding ? <LockOpenIcon /> : <LockIcon />}
+              </Button>
+            </div>
+
             {appearrancelayoutShow ? (
               <>
                 <div className="grid">
