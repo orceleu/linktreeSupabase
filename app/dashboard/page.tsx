@@ -314,7 +314,11 @@ export default function Dashboard() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
+  const [isHolding, setIsHolding] = useState("");
+  const [outlinecolorMainSotableitem, setOutlineColor] = useState(
+    "rgba(255, 255, 255, 1)"
+  );
+  const [isDraggable, setDraggable] = useState(false);
   interface SortableItemProps {
     item: ComponentType;
     index: number;
@@ -355,16 +359,7 @@ export default function Dashboard() {
       backgroundColor: backgroundColor,
       border: `1px solid ${borderRadiusColor}`,
       borderRadius: `${borderRadius}px`,*/
-      touchAction: "none", // Important for mobile devices
-      userSelect: "none", // Prevents text selection during drag
-    };
-    const styleForsep: Properties = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      padding: `${padding}px`,
-      margin: `${margin}px`,
-
-      touchAction: "none", // Important for mobile devices
+      touchAction: isHolding, // Important for mobile devices
       userSelect: "none", // Prevents text selection during drag
     };
 
@@ -375,7 +370,7 @@ export default function Dashboard() {
             <div className="my-5">
               <iframe
                 className=" rounded-[20px]"
-                width={230}
+                width={250}
                 src={`https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-`}
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -402,7 +397,7 @@ export default function Dashboard() {
                 border: `1px solid ${borderRadiusColor}`,
                 borderRadius: `${borderRadius}px`,
                 margin: `${margin}px`,
-                width: "200px",
+                width: "250px",
                 padding: `${padding}px`,
               }}
             >
@@ -451,11 +446,7 @@ export default function Dashboard() {
     }
   }, [focusedInputId, inputs]);
   // main item
-  const [isHolding, setIsHolding] = useState("");
-  const [outlinecolorMainSotableitem, setOutlineColor] = useState(
-    "rgba(255, 255, 255, 1)"
-  );
-  const [isDraggable, setDraggable] = useState(false);
+
   const startHold = () => {
     setIsHolding("none");
     //executeFunction();
@@ -2790,7 +2781,7 @@ export default function Dashboard() {
                     </ModalHeader>
                     <ModalBody>
                       <ScrollArea
-                        className="  w-full  h-[500px] border-gray-600 rounded-3xl shadow-lg p-2 border-[7px]"
+                        className="  w-full  h-[500px] border-gray-600 rounded-3xl shadow-lg p-4 border-[7px]"
                         style={{
                           background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
                         }}
@@ -2863,7 +2854,7 @@ export default function Dashboard() {
                                   key={item.position}
                                   item={item}
                                   index={index}
-                                  isDragOn={true}
+                                  isDragOn={isDraggable}
                                   backgroundColor={cardcolor}
                                   borderRadius={cardBorderRadius}
                                   borderRadiusColor={cardBorderRadiusColor}
@@ -2878,15 +2869,14 @@ export default function Dashboard() {
                           </DndContext>
                         </div>
                       </ScrollArea>
+                      <Button
+                        className="my-5"
+                        color="primary"
+                        onPress={lockUnlock}
+                      >
+                        {isHolding ? <LockOpenIcon /> : <LockIcon />}
+                      </Button>
                     </ModalBody>
-                    <ModalFooter>
-                      <Button color="danger" variant="light" onPress={onClose}>
-                        Close
-                      </Button>
-                      <Button color="primary" onPress={onClose}>
-                        Action
-                      </Button>
-                    </ModalFooter>
                   </>
                 )}
               </ModalContent>
