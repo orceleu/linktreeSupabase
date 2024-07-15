@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 
-import React, { useMemo, memo, useCallback } from "react";
+//import React, { useMemo, memo, useCallback } from "react";
 import { supabase } from "./supabase/supabaseInstance";
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
@@ -21,7 +21,7 @@ import {
 import Link from "next/link";
 // Create a single supabase client for interacting with your database
 
-interface CounterProps {
+/*interface CounterProps {
   count: number;
   onIncrement: () => void;
 }
@@ -34,10 +34,10 @@ const Counter: React.FC<CounterProps> = memo(({ count, onIncrement }) => {
       <button onClick={onIncrement}>Increment</button>
     </div>
   );
-});
+});*/
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  /*
   const [count1, setCount1] = useState<number>(0);
   const [count2, setCount2] = useState<number>(0);
 
@@ -53,7 +53,7 @@ export default function Home() {
     console.log("Calculating memoized value");
     return count1 * 2;
   }, [count1]);
-
+*/
   const menuItems = [
     "Profile",
     "Dashboard",
@@ -216,13 +216,13 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div>
+    </main>
+  );
+} /*
+<div>
         <h1>Counter 1</h1>
         <Counter count={count1} onIncrement={incrementCount1} />
         <h1>Counter 2</h1>
         <Counter count={count2} onIncrement={incrementCount2} />
         <p>Memoized Value: {memoizedValue}</p>
-      </div>
-    </main>
-  );
-}
+      </div>*/
