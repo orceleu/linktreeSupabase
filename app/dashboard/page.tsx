@@ -372,16 +372,7 @@ export default function Dashboard() {
             </div>
           );
         case "COMPONENT_TEXT":
-          return (
-            <p className="p-5 text-center">
-              {useMemo(
-                () =>
-                  inputs.find((input) => input.position === item.position)
-                    ?.texte || item.texte,
-                [inputs]
-              )}
-            </p>
-          );
+          return <p className="p-5 text-center">{item.texte}</p>;
         case "COMPONENT_SPOTIFY":
           return (
             <Spotify
