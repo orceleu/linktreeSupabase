@@ -370,7 +370,7 @@ export default function Dashboard() {
             <div className="my-5">
               <iframe
                 className=" rounded-[20px]"
-                width={250}
+                width={230}
                 src={`https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-`}
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -397,7 +397,7 @@ export default function Dashboard() {
                 border: `1px solid ${borderRadiusColor}`,
                 borderRadius: `${borderRadius}px`,
                 margin: `${margin}px`,
-                width: "250px",
+                width: "230px",
                 padding: `${padding}px`,
               }}
             >
@@ -2781,7 +2781,7 @@ export default function Dashboard() {
                     </ModalHeader>
                     <ModalBody>
                       <ScrollArea
-                        className="  w-full  h-[500px] border-gray-600 rounded-3xl shadow-lg p-4 border-[7px]"
+                        className="  w-full  h-[600px] border-gray-600 rounded-3xl shadow-lg  border-[7px]"
                         style={{
                           background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
                         }}
