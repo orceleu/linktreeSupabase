@@ -22,6 +22,7 @@ import { Properties } from "csstype";
 import {
   Children,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -367,11 +368,20 @@ export default function Dashboard() {
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
-              ></iframe>{" "}
+              ></iframe>
             </div>
           );
         case "COMPONENT_TEXT":
-          return <p className="p-5 text-center">{item.texte}</p>;
+          return (
+            <p className="p-5 text-center">
+              {useMemo(
+                () =>
+                  inputs.find((input) => input.position === item.position)
+                    ?.texte || item.texte,
+                [inputs]
+              )}
+            </p>
+          );
         case "COMPONENT_SPOTIFY":
           return (
             <Spotify
@@ -439,7 +449,10 @@ export default function Dashboard() {
   }, [focusedInputId, inputs]);
   // main item
   const [isHolding, setIsHolding] = useState("");
-
+  const [outlinecolorMainSotableitem, setOutlineColor] = useState(
+    "rgba(255, 255, 255, 1)"
+  );
+  const [isDraggable, setDraggable] = useState(false);
   const startHold = () => {
     setIsHolding("none");
     //executeFunction();
@@ -453,13 +466,21 @@ export default function Dashboard() {
     startHold();
   };
 
-  const handleTouchEnd = (e: any) => {
-    e.preventDefault();
-    clearHold();
+  const lockUnlock = () => {
+    if (isHolding === "") {
+      setOutlineColor("rgba(51, 204, 140, 1)");
+      setDraggable(true);
+      setIsHolding("none");
+    } else {
+      setOutlineColor("rgba(255, 255, 255, 1)");
+      setDraggable(false);
+      setIsHolding("");
+    }
   };
   const MainSortableItem: React.FC<SortableItemProps> = ({
     item,
     index,
+    isDragOn,
     backgroundColor,
     borderRadius,
     borderRadiusColor,
@@ -471,7 +492,7 @@ export default function Dashboard() {
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
       useSortable({ id: item.position });
-
+    let listenersOnstate = isDragOn ? { ...listeners } : undefined;
     const style: Properties = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -480,7 +501,7 @@ export default function Dashboard() {
       marginTop: `20px`,
       marginBottom: `1px`,
       backgroundColor: "rgba(255, 255, 255, 1)",
-
+      border: `1px solid ${outlinecolorMainSotableitem}`,
       touchAction: isHolding, // Important for mobile devices
       userSelect: "none", // Prevents text selection during drag
     };
@@ -490,16 +511,18 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 lg:gap-7 ">
           <div
             ref={setNodeRef}
-            {...listeners}
             {...attributes}
+            {...listenersOnstate}
             style={{
               padding: "5px",
               cursor: "grab",
             }}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
           >
-            |||
+            {isDraggable ? (
+              <p className="text-emerald-600">|||</p>
+            ) : (
+              <p className="text-gray-200 lg:text-black">|||</p>
+            )}
           </div>
 
           {ReturnIcon(witchComponent)}
@@ -522,13 +545,10 @@ export default function Dashboard() {
         return (
           <>
             <br />
-            <div className="grid grid-cols-1 lg:grid-cols-2 lg:p-3 bg-white gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:p-3  gap-2">
               <Input
                 type="text"
-                value={
-                  inputs.find((input) => input.position === item.position)
-                    ?.texte || item.texte
-                }
+                value={item.texte}
                 onChange={(e) => {
                   handleLabelChangeForSite(item.position, e.target.value);
                   // handleInputFocus(item.position.toString());
@@ -544,10 +564,7 @@ export default function Dashboard() {
               <Input
                 ref={setNodeRef}
                 type="text"
-                value={
-                  inputs.find((input) => input.position === item.position)
-                    ?.url || item.url
-                }
+                value={item.url}
                 onChange={(e) => {
                   handleInputChangeForSite(item.position, e.target.value);
                   //focus problem
@@ -593,14 +610,11 @@ export default function Dashboard() {
       case "COMPONENT_YOUTUBE_EMB":
         return (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white  gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2    gap-2">
               <Input
                 ref={setNodeRef}
                 type="text"
-                value={
-                  inputs.find((input) => input.position === item.position)
-                    ?.url || item.url
-                }
+                value={item.url}
                 onChange={(e) => {
                   handleInputChangeForSite(item.position, e.target.value);
                   //focus problem
@@ -614,6 +628,7 @@ export default function Dashboard() {
                   !isFocused ? handleInputFocus("") : null;
                 }}
                 placeholder="youtube video url"
+                className="lg:mt-10"
               />
               <div className="flex justify-end">
                 <div className="flex items-center gap-2 lg:gap-5">
@@ -647,14 +662,11 @@ export default function Dashboard() {
       case "COMPONENT_SPOTIFY":
         return (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white  gap-2 ">
+            <div className="grid grid-cols-1 lg:grid-cols-2    gap-2 ">
               <Input
                 ref={setNodeRef}
                 type="text"
-                value={
-                  inputs.find((input) => input.position === item.position)
-                    ?.url || item.url
-                }
+                value={item.url}
                 onChange={(e) => {
                   handleInputChangeForSite(item.position, e.target.value);
                   //focus problem
@@ -668,6 +680,7 @@ export default function Dashboard() {
                   !isFocused ? handleInputFocus("") : null;
                 }}
                 placeholder="spotify url"
+                className="lg:mt-10"
               />
               <div className="flex justify-end">
                 <div className="flex items-center gap-2 lg:gap-5">
@@ -720,13 +733,10 @@ export default function Dashboard() {
       case "COMPONENT_TEXT":
         return (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2  bg-white  gap-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2   gap-2">
               <Input
                 type="text"
-                value={
-                  inputs.find((input) => input.position === item.position)
-                    ?.texte || item.texte
-                }
+                value={item.texte}
                 onChange={(e) => {
                   handleLabelChangeForSite(item.position, e.target.value);
                   // handleInputFocus(item.position.toString());
@@ -737,6 +747,7 @@ export default function Dashboard() {
                   !isFocused ? handleInputFocus("") : null;
                 }}
                 placeholder="Ex: My facebook page"
+                className="lg:mt-10"
               />
             </div>
             <br />
@@ -1880,8 +1891,8 @@ export default function Dashboard() {
                               borderRadiusColor={cardBorderRadiusColor}
                               padding={cardPadding}
                               margin={cardmargin}
-                              title=""
-                              url=""
+                              title={item.texte}
+                              url={item.url}
                               witchComponent={item.type}
                             />
                           </div>
@@ -2634,7 +2645,7 @@ export default function Dashboard() {
                               key={item.position}
                               item={item}
                               index={index}
-                              isDragOn={true}
+                              isDragOn={isDraggable}
                               backgroundColor={cardcolor}
                               borderRadius={cardBorderRadius}
                               borderRadiusColor={cardBorderRadiusColor}
@@ -2771,7 +2782,9 @@ export default function Dashboard() {
                 </Dialog>
               </>
             ) : null}
-
+            <Button onPress={lockUnlock} className="fixed bottom-2 end-3">
+              lock screen{" "}
+            </Button>
             {appearrancelayoutShow ? (
               <>
                 <div className="grid">
