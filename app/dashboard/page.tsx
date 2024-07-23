@@ -20,16 +20,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Properties } from "csstype";
 import {
-  Children,
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { Database } from "../database.type";
 import {
   Modal,
   ModalContent,
@@ -50,12 +47,7 @@ import { Divider } from "@nextui-org/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import "chart.js/auto";
-import {
-  FaFacebook,
-  FaLocationArrow,
-  FaPatreon,
-  FaYoutubeSquare,
-} from "react-icons/fa";
+import { FaFacebook, FaLocationArrow, FaPatreon } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa";
 import {
   BsCheck2Circle,
@@ -97,14 +89,6 @@ import {
   YoutubeIcon,
 } from "lucide-react";
 
-import // Dropdown,
-// DropdownTrigger,
-// DropdownMenu,
-// DropdownItem,
-// Avatar,
-// Button,
-// ButtonGroup,
-"@nextui-org/react";
 import { Button } from "@nextui-org/button";
 import { ButtonGroup } from "@nextui-org/button";
 import {
@@ -124,7 +108,16 @@ import {
 import { RgbaStringColorPicker } from "react-colorful";
 import Link from "next/link";
 import ReturnIcon from "./ReturnIcon";
-import { Spotify } from "react-spotify-embed";
+import { setTimeout } from "timers";
+import { SortableItem } from "./Devicednd";
+import {
+  addComponent,
+  deleteComponentUrl,
+  updateActiveUrl,
+  updateComponentCardText,
+  updateComponentPosition,
+  updateComponentUrl,
+} from "./supabaseFunction";
 
 interface ReseauxUrl {
   id: string;
@@ -136,16 +129,6 @@ interface ReseauxUrl {
   for_link_url: string;
 }
 
-interface SiteUrl {
-  id: string;
-  is_active: boolean;
-  position: number;
-  card_name: string;
-  site_url: string;
-  photo_url: string;
-  click: number;
-  for_link_url: string;
-}
 interface ComponentType {
   id: string;
   is_active: boolean;
@@ -157,10 +140,6 @@ interface ComponentType {
   url: string;
 
   for_link_url: string;
-}
-
-interface IconReseaux {
-  icon: IconType;
 }
 
 interface UserType {
@@ -181,17 +160,6 @@ interface LinkRetriv {
   daily_click: number;
   link_url: string;
 }
-interface ReseauxData {
-  is_active: boolean;
-  position: number;
-  card_name: string;
-  reseaux_url: string;
-  photo_url: string;
-  click: number;
-  for_link_url: string;
-}
-
-const reseauLinkToAdd: string[] = [];
 
 export default function Dashboard() {
   //input for link
@@ -207,18 +175,11 @@ export default function Dashboard() {
   const [newdesc, setnewdesc] = useState("");
   const [usersurl, setuserurl] = useState<UserType[]>([]);
   const [isuserUrlDispo, setUserUrlDispo] = useState(false);
-  const [isfacebooklinkdisable, setFacebooklinkdisable] = useState(false);
-  const [isinstagramlinkdisable, setInstagramlinkdisable] = useState(false);
-  const [isXlinkdisable, setXlinkdisable] = useState(false);
+
   const [email, setEmail] = useState("");
   const [selectedlink, setselectedLink] = useState("");
-  const [selectedKeys, setSelectedKeys] = useState("text");
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [size, setSize] = useState("full");
-  const selectedValue = useMemo(
-    () => Array.from(selectedKeys).join(", ").replaceAll("_", " "),
-    [selectedKeys]
-  );
+
   const [reseauxitems, setreseauxItems] = useState<ReseauxUrl[]>([
     {
       id: "1234",
@@ -238,50 +199,15 @@ export default function Dashboard() {
       click: 0,
       for_link_url: "betelgeuse",
     },
-    {
-      id: "1236",
-      is_active: true,
-      position: 2,
-      icon: "youtube",
-      reseaux_url: "https://facebook.com3",
-      click: 0,
-      for_link_url: "betelgeuse",
-    },
-    {
-      id: "1237",
-      is_active: true,
-      position: 2,
-      icon: "twitch",
-      reseaux_url: "https://facebook.com4",
-      click: 0,
-      for_link_url: "betelgeuse",
-    },
-    {
-      id: "1238",
-      is_active: true,
-      position: 2,
-      icon: "spotify",
-      reseaux_url: "https://facebook.com5",
-      click: 0,
-      for_link_url: "betelgeuse",
-    },
   ]);
 
   const [itemsdnd, setItemsdnd] = useState<ComponentType[]>([]);
   const [itemsdndforAdd, setItemsdndForADD] = useState<ComponentType[]>([]);
   const [inputs, setInputs] = useState<ComponentType[]>([]);
-  const [labelselected, setlabelselected] = useState("");
   const [textDispo, setTextDispo] = useState("");
-  const [paymentData, setPaymentData] = useState(null);
   const userId = useRef("");
   const [yourlink, setyourlink] = useState<LinkRetriv[]>([]);
 
-  //color picker
-
-  /*borderRadius,
-  borderRadiusColor,
-  padding,
-  margin*/
   const [bgcolor1, setbgColor1] = useState(" rgba(255, 255, 255, 1)");
   const [bgcolor2, setbgColor2] = useState(" rgba(255, 255, 255, 1)");
   const [color1, setColor] = useState(" rgba(0, 0, 0, 1)");
@@ -294,16 +220,13 @@ export default function Dashboard() {
   );
   const [cardPadding, setCardPadding] = useState<number | number[]>(15);
   const [cardmargin, setCardmargin] = useState<number | number[]>(7);
-  const colorcontext = createContext(color1);
   const [colorDegres, setColorDegres] = useState<number | number[]>(45);
   //
 
   const [buttonlayoutShow, setbuttonLayoutShow] = useState(false);
   const [gridlayoutShow, setgridLayoutShow] = useState(false);
   const [appearrancelayoutShow, setappearanceLayoutShow] = useState(false);
-  const [isHome, setHome] = useState(true);
-  const [isanalytics, setAnalytics] = useState(false);
-  const [isshortlink, setshortlink] = useState(false);
+
   //url user selectionne
   let selectedUrl = useRef("*");
   //let updatedItem = useRef<SiteUrl[]>([]);
@@ -319,6 +242,33 @@ export default function Dashboard() {
     "rgba(255, 255, 255, 1)"
   );
   const [isDraggable, setDraggable] = useState(false);
+  //function color picker
+  const setBgColor1 = useCallback((color: string) => {
+    setbgColor1(color);
+  }, []);
+  const setBgColor2 = useCallback((color: string) => {
+    setbgColor2(color);
+  }, []);
+  const setCardColorr = useCallback((color: string) => {
+    setCardColor(color);
+  }, []);
+  const setCardBorderRadiusColorr = useCallback((color: string) => {
+    setCardBorderRadiusColor(color);
+  }, []);
+
+  //debounce function to delay
+  const debounce = (func: any, delay: any) => {
+    let timeoutId: any;
+    return function (...args: any) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  const debounceSearch = debounce(setBgColor1, 1000);
+
   interface SortableItemProps {
     item: ComponentType;
     index: number;
@@ -328,113 +278,10 @@ export default function Dashboard() {
     borderRadiusColor: string;
     padding: number | number[];
     margin: number | number[];
-    title: string;
-    url: string;
+    isHolding: string;
     witchComponent: string;
   }
-  //react dnd,dnd/sorted
-  const SortableItem: React.FC<SortableItemProps> = ({
-    item,
-    index,
-    isDragOn,
-    backgroundColor,
-    borderRadius,
-    borderRadiusColor,
-    padding,
-    margin,
-    title,
-    url,
-    witchComponent,
-  }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } =
-      useSortable({ id: item.position });
 
-    let listenersOnstate = isDragOn ? { ...listeners } : undefined;
-
-    const style: Properties = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      /*padding: `${padding}px`,
-      margin: `${margin}px`,
-      backgroundColor: backgroundColor,
-      border: `1px solid ${borderRadiusColor}`,
-      borderRadius: `${borderRadius}px`,*/
-      touchAction: isHolding, // Important for mobile devices
-      userSelect: "none", // Prevents text selection during drag
-    };
-
-    const returnComponent = (component: string) => {
-      switch (component) {
-        case "COMPONENT_YOUTUBE_EMB":
-          return (
-            <div className="my-5">
-              <iframe
-                className=" rounded-[20px]"
-                width={230}
-                src={`https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-`}
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              ></iframe>
-            </div>
-          );
-        case "COMPONENT_TEXT":
-          return <p className="p-5 text-center">{item.texte}</p>;
-        case "COMPONENT_SPOTIFY":
-          return (
-            <Spotify
-              className="w-full mx-5  my-5"
-              link="https://open.spotify.com/album/0fUy6IdLHDpGNwavIlhEsl?si=mTiITmlHQpaGkoivGTv8Jw"
-            />
-          );
-        case "COMPONENT_SEPARATOR":
-          return <Separator className="my-5" />;
-        case "COMPONENT_LINK":
-          return (
-            <div
-              style={{
-                backgroundColor: backgroundColor,
-                border: `1px solid ${borderRadiusColor}`,
-                borderRadius: `${borderRadius}px`,
-                margin: `${margin}px`,
-                width: "230px",
-                padding: `${padding}px`,
-              }}
-            >
-              <p className="text-center ">{item.texte}</p>
-            </div>
-          );
-        case "COMPONENT_FORM":
-          return (
-            <div
-              className="rounded-md shadow-md p-5 mt-5"
-              style={{ color: cardcolor }}
-            >
-              <Input label="Full name:" />
-              <br />
-              <Input label="Email:" />
-            </div>
-          );
-        default:
-          null;
-          break;
-      }
-    };
-
-    if (item.is_active) {
-      return (
-        <div
-          ref={setNodeRef}
-          style={style}
-          {...attributes}
-          {...listenersOnstate}
-          className="flex justify-center"
-        >
-          {returnComponent(witchComponent)}
-        </div>
-      );
-    }
-  };
   const [focusedInputId, setFocusedInputId] = useState<string>("0");
   const inputRef = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const handleInputFocus = (id: string) => {
@@ -446,19 +293,6 @@ export default function Dashboard() {
     }
   }, [focusedInputId, inputs]);
   // main item
-
-  const startHold = () => {
-    setIsHolding("none");
-    //executeFunction();
-  };
-
-  const clearHold = () => {
-    setIsHolding("");
-  };
-  const handleTouchStart = (e: any) => {
-    e.preventDefault();
-    startHold();
-  };
 
   const lockUnlock = () => {
     if (isHolding === "") {
@@ -480,8 +314,7 @@ export default function Dashboard() {
     borderRadiusColor,
     padding,
     margin,
-    title,
-    url,
+    isHolding,
     witchComponent,
   }) => {
     const { attributes, listeners, setNodeRef, transform, transition } =
@@ -501,31 +334,33 @@ export default function Dashboard() {
     };
 
     return (
-      <div style={style} className="flex justify-between ">
-        <div className="flex items-center gap-2 lg:gap-7 ">
-          <div
-            ref={setNodeRef}
-            {...attributes}
-            {...listenersOnstate}
-            style={{
-              padding: "5px",
-              cursor: "grab",
-            }}
-          >
-            {isDraggable ? (
-              <p className="text-emerald-600">|||</p>
-            ) : (
-              <p className="text-gray-200 lg:text-black">|||</p>
-            )}
+      <>
+        <div style={style} className="flex justify-between ">
+          <div className="flex items-center gap-2 lg:gap-7 ">
+            <div
+              ref={setNodeRef}
+              {...attributes}
+              {...listenersOnstate}
+              style={{
+                padding: "5px",
+                cursor: "grab",
+              }}
+            >
+              {isDraggable ? (
+                <p className="text-emerald-600">|||</p>
+              ) : (
+                <p className="text-gray-200 lg:text-black">|||</p>
+              )}
+            </div>
+
+            {ReturnIcon(witchComponent)}
           </div>
 
-          {ReturnIcon(witchComponent)}
-        </div>
-
-        <div>
-          {returnMainComponent(witchComponent, index, item, setNodeRef)}
-        </div>
-      </div>
+          <div>
+            {returnMainComponent(witchComponent, index, item, setNodeRef)}
+          </div>
+        </div>{" "}
+      </>
     );
   };
   function returnMainComponent(
@@ -534,6 +369,47 @@ export default function Dashboard() {
     item: any,
     setNodeRef: any
   ) {
+    const handleLabelChangeForSite = useCallback(
+      (id: number, label: string) => {
+        setItemsdnd((prevInputs) =>
+          prevInputs.map((input) =>
+            input.position === id ? { ...input, texte: label } : input
+          )
+        );
+        setItemsdndForADD((prevInputs) =>
+          prevInputs.map((input) =>
+            input.position === id ? { ...input, texte: label } : input
+          )
+        );
+      },
+      []
+    );
+    const handleInputChangeForSite = useCallback(
+      (id: number, value: string) => {
+        setItemsdnd((prevInputs) =>
+          prevInputs.map((input) =>
+            input.position === id ? { ...input, url: value } : input
+          )
+        );
+        setItemsdndForADD((prevInputs) =>
+          prevInputs.map((input) =>
+            input.position === id ? { ...input, url: value } : input
+          )
+        );
+      },
+      []
+    );
+    const handleIsVisibleChangeForSite = useCallback(
+      (id: number, value: boolean) => {
+        setItemsdnd((prevInputs) =>
+          prevInputs.map((input) =>
+            input.position === id ? { ...input, is_active: value } : input
+          )
+        );
+      },
+      []
+    );
+
     switch (witchComponent) {
       case "COMPONENT_LINK":
         return (
@@ -590,7 +466,8 @@ export default function Dashboard() {
                   size="sm"
                   onPress={() => {
                     handleDelete(item.position); //delete item on ui
-                    deleteSiteUrl(item.id); //delete item on database
+                    deleteComponentUrl(item.id);
+                    updateComponentPosition(itemsdnd); //delete item on database
                   }}
                 >
                   <TrashIcon />
@@ -641,7 +518,8 @@ export default function Dashboard() {
                     size="sm"
                     onPress={() => {
                       handleDelete(item.position); //delete item on ui
-                      deleteSiteUrl(item.id); //delete item on database
+                      deleteComponentUrl(item.id); //delete item on database
+                      updateComponentPosition(itemsdnd);
                     }}
                   >
                     <TrashIcon />
@@ -692,7 +570,8 @@ export default function Dashboard() {
                     size="sm"
                     onPress={() => {
                       handleDelete(item.position); //delete item on ui
-                      deleteSiteUrl(item.id); //delete item on database
+                      deleteComponentUrl(item.id); //delete item on database
+                      updateComponentPosition(itemsdnd);
                     }}
                   >
                     <TrashIcon />
@@ -711,7 +590,8 @@ export default function Dashboard() {
                 size="sm"
                 onPress={() => {
                   handleDelete(item.position); //delete item on ui
-                  deleteSiteUrl(item.id); //delete item on database
+                  deleteComponentUrl(item.id); //delete item on database
+                  updateComponentPosition(itemsdnd);
                 }}
               >
                 <TrashIcon />
@@ -747,7 +627,8 @@ export default function Dashboard() {
                 size="sm"
                 onPress={() => {
                   handleDelete(item.position); //delete item on ui
-                  deleteSiteUrl(item.id); //delete item on database
+                  deleteComponentUrl(item.id); //delete item on database
+                  updateComponentPosition(itemsdnd);
                 }}
               >
                 <TrashIcon />
@@ -802,55 +683,6 @@ export default function Dashboard() {
         return null;
     }
   };
-  const returnComponent = (component: string, color: string, url: string) => {
-    switch (component) {
-      case "facebook":
-        return <FaFacebook className="w-7 h-7" style={{ color: color }} />;
-      case "instagram":
-        return <FaInstagram className="w-7 h-7" style={{ color: color }} />;
-      case "x":
-        return <BsTwitterX className="w-7 h-7" style={{ color: color }} />;
-      case "youtube":
-        return (
-          <>
-            <iframe
-              width={500}
-              height="mx-auto"
-              src={`${url}`}
-              title="YouTube video player"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            ></iframe>
-          </>
-        );
-      case "twitch":
-        return <BsTwitch className="w-7 h-7" style={{ color: color }} />;
-      case "spotify":
-        return <BsSpotify className="w-7 h-7" style={{ color: color }} />;
-      case "discord":
-        return <BsDiscord className="w-7 h-7" style={{ color: color }} />;
-      case "patreon":
-        return <FaPatreon className="w-7 h-7" style={{ color: color }} />;
-      default:
-        return null;
-    }
-  };
-
-  /*
-
-  
-   
-   1- changer la itemdnd sur la table site***
-   2-update les positions en temps reel***
-   3- add input for label
-   4-detecter les donnees a inserer et les donnees a update,
-   5-active /desactive url
-   6-delete url site
-
-
-
-
-*/
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -874,31 +706,9 @@ export default function Dashboard() {
       //updatedItem.current = newItems;
       console.log(newItems);
 
-      updateSitePosition(newItems);
+      updateComponentPosition(newItems);
     }
   };
-
-  const addItemdata = () => {
-    setItemsdnd((previewItem) => [...previewItem, ...itemsdnd]);
-  };
-
-  // Fonction pour soustraire deux tableaux de chaînes de caractères
-  function subtractArrays(arr1: SiteUrl[], arr2: SiteUrl[]): SiteUrl[] {
-    return arr1.filter((item) => !arr2.includes(item));
-  }
-
-  // Exemple de tableaux
-  //const array1: SiteUrl[] = ["pomme", "banane", "orange", "fraise"];
-  // const array2: SiteUrl[] = ["banane", "fraise", "kiwi"];
-
-  // Fonction pour trouver les différences entre deux objets
-
-  // Affichage des différences
-  function additemTodatabase() {
-    //displayDifferences(updateddata, initialdata);
-    console.log(itemsdndforAdd);
-  }
-
   //1---supabase postgres functions
 
   //donne tout les liens cree par les users
@@ -1040,99 +850,6 @@ export default function Dashboard() {
       alert("wong name choosen");
     }
   };
-  const addReseauxLink = async () => {
-    let newCardReseauxTablePositon1: ReseauxData[] = [
-      {
-        is_active: true,
-        position: 3,
-        card_name: "card name",
-        reseaux_url: "google.com/3",
-        photo_url: "photo.com",
-        click: 1,
-        for_link_url: selectedUrl.current,
-      },
-      {
-        is_active: true,
-        position: 4,
-        card_name: "card name",
-        reseaux_url: "google.com/4",
-        photo_url: "photo.com",
-        click: 1,
-        for_link_url: selectedUrl.current,
-      },
-    ];
-    const { data, error } = await supabase
-      .from("users_reseaux")
-      .insert(newCardReseauxTablePositon1);
-    if (error) console.log(error);
-    console.log(data);
-  };
-
-  const updateReseauxPosition = async (dataForUpdate: any) => {
-    reseauxitems.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("users_reseaux") // Remplacez par le nom de votre table
-          .update({ position: update.position }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("reseaux_url", update.reseaux_url);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const updateSitePosition = async (dataForUpdate: ComponentType[]) => {
-    dataForUpdate.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("component") // Remplacez par le nom de votre table
-          .update({ position: update.position }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("id", update.id);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const updateSiteCardName = async (dataForUpdate: ComponentType[]) => {
-    dataForUpdate.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("component") // Remplacez par le nom de votre table
-          .update({ texte: update.texte }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("url", update.url);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const updateSiteUrl = async (dataForUpdate: ComponentType[]) => {
-    dataForUpdate.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("component") // Remplacez par le nom de votre table
-          .update({ url: update.url }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("id", update.id);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const updateActiveUrl = async (dataForUpdate: ComponentType[]) => {
-    dataForUpdate.map(
-      async (update) => {
-        const { data, error } = await supabase
-
-          .from("component") // Remplacez par le nom de votre table
-          .update({ is_active: update.is_active }) // Remplacez par la colonne et la valeur à mettre à jour
-          .eq("id", update.id);
-      } // Critères de sélection pour l'enregistrement à mettre à jour
-    );
-  };
-  const deleteSiteUrl = async (id: string) => {
-    const { data, error } = await supabase
-
-      .from("component") // Remplacez par le nom de votre table
-      .delete() // Remplacez par la colonne et la valeur à mettre à jour
-      .eq("id", id);
-    updateSitePosition(itemsdnd);
-    if (data) console.log(data);
-    if (error) console.log(error);
-  };
 
   const addSitesLink = async () => {
     const { data, error } = await supabase
@@ -1164,58 +881,12 @@ export default function Dashboard() {
     updatePhotoUrl(data.publicUrl);
   };
 
-  /* const handleContentChange = (id: string, newContent: string) => {
-    setItemsdnd((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, content: newContent } : item
-      )
-    );
-  };*/
   ////////////////////////////////////////////////////////////////////////
 
-  const handleInputChange = (id: number, value: string) => {
+  const handleResauxUrlChange = (id: number, value: string) => {
     setreseauxItems((prevInputs) =>
       prevInputs.map((input) =>
         input.position === id ? { ...input, reseaux_url: value } : input
-      )
-    );
-  };
-  /* const handleLabelChange = (id: number, label: string) => {
-    setreseauxItems((prevInputs) =>
-      prevInputs.map((input) =>
-        input.position === id ? { ...input, card_name: label } : input
-      )
-    );
-  };*/
-  const handleInputChangeForSite = (id: number, value: string) => {
-    setItemsdnd((prevInputs) =>
-      prevInputs.map((input) =>
-        input.position === id ? { ...input, url: value } : input
-      )
-    );
-    setItemsdndForADD((prevInputs) =>
-      prevInputs.map((input) =>
-        input.position === id ? { ...input, url: value } : input
-      )
-    );
-  };
-  const handleIsVisibleChangeForSite = (id: number, value: boolean) => {
-    setItemsdnd((prevInputs) =>
-      prevInputs.map((input) =>
-        input.position === id ? { ...input, is_active: value } : input
-      )
-    );
-  };
-
-  const handleLabelChangeForSite = (id: number, label: string) => {
-    setItemsdnd((prevInputs) =>
-      prevInputs.map((input) =>
-        input.position === id ? { ...input, texte: label } : input
-      )
-    );
-    setItemsdndForADD((prevInputs) =>
-      prevInputs.map((input) =>
-        input.position === id ? { ...input, texte: label } : input
       )
     );
   };
@@ -1268,22 +939,8 @@ export default function Dashboard() {
       },
     ]);
   };
-
-  const handleSave = (id: number) => {
-    const input = inputs.find((input) => input.position === id);
-    if (input) {
-      setItemsdnd((prevItems) =>
-        prevItems.map((item) =>
-          item.position === id
-            ? {
-                ...item,
-                url: input.url,
-                texte: input.texte,
-              }
-            : item
-        )
-      );
-    }
+  const addReseauxItem = (newValue: any) => {
+    [setreseauxItems((prevItem) => [...prevItem, newValue])];
   };
   const handleDelete = (id: number) => {
     const updatedItems = itemsdnd.filter((item) => item.position !== id);
@@ -1303,17 +960,11 @@ export default function Dashboard() {
     setInputs(rearrangedInputs);
   };
 
-  const handlePaymentSuccess = (paymentMethod: any) => {
-    console.log("Payment successful", paymentMethod);
-    setPaymentData(paymentMethod);
-  };
-  const route = useRouter();
-
   const isLogin = async () => {
     const { data, error } = await supabaseBrowserClient.auth.getUser();
     //const {data, error} = await supabase.auth.getSession();
     if (error || !data?.user) {
-      // route.push("/login");
+      // router.push("/login");
     }
     if (data.user?.email !== null && data.user?.email !== undefined) {
       setEmail(data.user.email);
@@ -1330,7 +981,7 @@ export default function Dashboard() {
   const logOut = async () => {
     const { error } = await supabaseBrowserClient.auth.signOut();
     console.log("logged out!");
-    route.push("/login");
+    router.push("/login");
     if (error) {
       console.log(error);
     }
@@ -1405,9 +1056,7 @@ export default function Dashboard() {
               variant="bordered"
               className=" mt-5"
               onPress={() => {
-                setHome(true);
-                setAnalytics(false);
-                setshortlink(false);
+                router.push("/dashboard");
               }}
             >
               <HomeIcon />
@@ -1417,9 +1066,7 @@ export default function Dashboard() {
               className="my-5 "
               variant="bordered"
               onPress={() => {
-                setHome(false);
-                setAnalytics(true);
-                setshortlink(false);
+                router.push("/navigation/Analytics");
               }}
             >
               <BarChart4 />
@@ -1428,9 +1075,7 @@ export default function Dashboard() {
               size="sm"
               variant="bordered"
               onPress={() => {
-                setHome(false);
-                setAnalytics(false);
-                setshortlink(true);
+                router.push("/navigation/Urlshorter");
               }}
             >
               <Link2Icon />
@@ -1468,17 +1113,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="hidden lg:flex w-full ">
-          {isHome ? <>{home()}</> : null}
-          {isanalytics ? <>{analytics()}</> : null}
-          {isshortlink ? <>{shortlink()}</> : null}
-        </div>
+        <div className="hidden lg:flex w-full ">{home()}</div>
       </div>
-      <div className="lg:hidden flex w-full">
-        {isHome ? <>{homeForMobile()}</> : null}
-        {isanalytics ? <>{analytics()}</> : null}
-        {isshortlink ? <>{shortlink()}</> : null}
-      </div>
+      <div className="lg:hidden flex w-full">{homeForMobile()}</div>
     </>
   );
 
@@ -1647,23 +1284,20 @@ export default function Dashboard() {
                             className="my-5"
                           />
                         </div>
-                        <DialogFooter className="sm:justify-start">
+                        <DialogFooter className="sm:justify-between">
                           <DialogClose asChild>
                             <Button type="button" variant="bordered">
                               Close
                             </Button>
                           </DialogClose>
-                          <div className="flex justify-end">
-                            <Button
-                              variant="bordered"
-                              onClick={() =>
-                                addLinkUrl(newname, newdesc, newUrl)
-                              }
-                              className=" fixed bottom-2  bg-green-500 "
-                            >
-                              add
-                            </Button>
-                          </div>
+
+                          <Button
+                            variant="bordered"
+                            onClick={() => addLinkUrl(newname, newdesc, newUrl)}
+                            className="   bg-green-500 "
+                          >
+                            add
+                          </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -1679,44 +1313,6 @@ export default function Dashboard() {
                       upload
                     </Button>
                   </form>
-                  <div className="flex justify-end">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="bordered" size="sm">
-                          bg color
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            pick background color: <span>{bgcolor1}</span>-
-                            <span>{bgcolor2}</span>
-                          </DialogTitle>
-                          <DialogDescription>
-                            Choose your social media link.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div>
-                          <RgbaStringColorPicker
-                            color={bgcolor1}
-                            onChange={setbgColor1}
-                          />
-                          <RgbaStringColorPicker
-                            color={bgcolor2}
-                            onChange={setbgColor2}
-                          />
-                          ;
-                        </div>
-                        <DialogFooter className="sm:justify-start">
-                          <DialogClose asChild>
-                            <Button type="button" variant="bordered">
-                              Close
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
                   <br />
                   <Input
                     value={value}
@@ -1734,39 +1330,6 @@ export default function Dashboard() {
                 </div>
                 <br />
                 <div className="rounded-[20px] p-5 bg-white">
-                  <div className="flex justify-end">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="bordered" size="sm">
-                          Name color
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            pick color<span>{color1}</span>
-                          </DialogTitle>
-                          <DialogDescription>
-                            Choose your social media link.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div>
-                          <RgbaStringColorPicker
-                            color={color1}
-                            onChange={setColor}
-                          />
-                          ;
-                        </div>
-                        <DialogFooter className="sm:justify-start">
-                          <DialogClose asChild>
-                            <Button type="button" variant="bordered">
-                              Close
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
                   <br />
                   <Input
                     value={name}
@@ -1880,8 +1443,7 @@ export default function Dashboard() {
                               borderRadiusColor={cardBorderRadiusColor}
                               padding={cardPadding}
                               margin={cardmargin}
-                              title={item.texte}
-                              url={item.url}
+                              isHolding={isHolding}
                               witchComponent={item.type}
                             />
                           </div>
@@ -1896,12 +1458,12 @@ export default function Dashboard() {
                   onPress={() => {
                     //addItemdata();
                     if (itemsdndforAdd.length > 0) {
-                      additemTodatabase();
                       //if detect update ,Update in the function
-                      addSitesLink();
+                      addComponent(itemsdndforAdd);
+                      setItemsdndForADD([]);
                     } else {
-                      updateSiteCardName(itemsdnd);
-                      updateSiteUrl(itemsdnd);
+                      updateComponentCardText(itemsdnd);
+                      updateComponentUrl(itemsdnd);
                       updateActiveUrl(itemsdnd);
                     }
                   }}
@@ -2022,11 +1584,11 @@ export default function Dashboard() {
                   <div className="flex items-center gap-4">
                     <RgbaStringColorPicker
                       color={bgcolor1}
-                      onChange={setbgColor1}
+                      onChange={debounceSearch}
                     />
                     <RgbaStringColorPicker
                       color={bgcolor2}
-                      onChange={setbgColor2}
+                      onChange={(color) => setBgColor2(color)}
                     />
                     ;
                   </div>
@@ -2051,7 +1613,7 @@ export default function Dashboard() {
 
                   <RgbaStringColorPicker
                     color={cardcolor}
-                    onChange={setCardColor}
+                    onChange={(color) => setCardColorr(color)}
                   />
 
                   <p className="font-bold my-5">
@@ -2060,7 +1622,7 @@ export default function Dashboard() {
 
                   <RgbaStringColorPicker
                     color={cardBorderRadiusColor}
-                    onChange={setCardBorderRadiusColor}
+                    onChange={(color) => setCardBorderRadiusColorr(color)}
                   />
 
                   <p className="font-bold my-5">
@@ -2231,8 +1793,7 @@ export default function Dashboard() {
                         borderRadiusColor={cardBorderRadiusColor}
                         padding={cardPadding}
                         margin={cardmargin}
-                        title=""
-                        url=""
+                        isHolding={isHolding}
                         witchComponent={item.type}
                       />
                     ))}
@@ -2409,23 +1970,20 @@ export default function Dashboard() {
                             className="my-5"
                           />
                         </div>
-                        <DialogFooter className="sm:justify-start">
+                        <DialogFooter className="justify-between gap-2">
                           <DialogClose asChild>
                             <Button type="button" variant="bordered">
                               Close
                             </Button>
                           </DialogClose>
-                          <div className="flex justify-end">
-                            <Button
-                              variant="bordered"
-                              onClick={() =>
-                                addLinkUrl(newname, newdesc, newUrl)
-                              }
-                              className=" fixed bottom-2  bg-green-500 "
-                            >
-                              add
-                            </Button>
-                          </div>
+
+                          <Button
+                            variant="bordered"
+                            onClick={() => addLinkUrl(newname, newdesc, newUrl)}
+                            className=" bg-green-500 "
+                          >
+                            add
+                          </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
@@ -2439,44 +1997,6 @@ export default function Dashboard() {
                       upload
                     </Button>
                   </form>
-                  <div className="flex justify-end">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="bordered" size="sm">
-                          bg color
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            pick background color: <span>{bgcolor1}</span>-
-                            <span>{bgcolor2}</span>
-                          </DialogTitle>
-                          <DialogDescription>
-                            Choose your social media link.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div>
-                          <RgbaStringColorPicker
-                            color={bgcolor1}
-                            onChange={setbgColor1}
-                          />
-                          <RgbaStringColorPicker
-                            color={bgcolor2}
-                            onChange={setbgColor2}
-                          />
-                          ;
-                        </div>
-                        <DialogFooter className="sm:justify-start">
-                          <DialogClose asChild>
-                            <Button type="button" variant="bordered">
-                              Close
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
                   <br />
                   <Input
                     value={value}
@@ -2494,39 +2014,6 @@ export default function Dashboard() {
                 </div>
                 <br />
                 <div className="rounded-[20px] p-1 lg:p-5 bg-white">
-                  <div className="flex justify-end">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="bordered" size="sm">
-                          Name color
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            pick color<span>{color1}</span>
-                          </DialogTitle>
-                          <DialogDescription>
-                            Choose your social media link.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div>
-                          <RgbaStringColorPicker
-                            color={color1}
-                            onChange={setColor}
-                          />
-                          ;
-                        </div>
-                        <DialogFooter className="sm:justify-start">
-                          <DialogClose asChild>
-                            <Button type="button" variant="bordered">
-                              Close
-                            </Button>
-                          </DialogClose>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
                   <br />
                   <Input
                     value={name}
@@ -2640,8 +2127,7 @@ export default function Dashboard() {
                               borderRadiusColor={cardBorderRadiusColor}
                               padding={cardPadding}
                               margin={cardmargin}
-                              title=""
-                              url=""
+                              isHolding={isHolding}
                               witchComponent={item.type}
                             />
                           </div>
@@ -2656,12 +2142,12 @@ export default function Dashboard() {
                   onPress={() => {
                     //addItemdata();
                     if (itemsdndforAdd.length > 0) {
-                      additemTodatabase();
                       //if detect update ,Update in the function
-                      addSitesLink();
+                      addComponent(itemsdndforAdd);
+                      setItemsdndForADD([]);
                     } else {
-                      updateSiteCardName(itemsdnd);
-                      updateSiteUrl(itemsdnd);
+                      updateComponentCardText(itemsdnd);
+                      updateComponentUrl(itemsdnd);
                       updateActiveUrl(itemsdnd);
                     }
                   }}
@@ -2773,114 +2259,117 @@ export default function Dashboard() {
             ) : null}
 
             <Modal size="full" isOpen={isOpen} onClose={onClose}>
-              <ModalContent>
-                {(onClose) => (
-                  <>
-                    <ModalHeader className="flex flex-col ">
-                      Modal Title
-                    </ModalHeader>
-                    <ModalBody>
-                      <ScrollArea
-                        className="  w-full  h-[600px] border-gray-600 rounded-3xl shadow-lg  border-[7px]"
-                        style={{
-                          background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
-                        }}
-                      >
-                        <div className="grid mx-auto">
-                          {photoUrl && (
-                            <Image
-                              src={photoUrl}
-                              alt="profil"
-                              width={100}
-                              height={100}
-                              className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
-                            />
-                          )}
+              <ScrollArea className="w-full h-[700px]">
+                {" "}
+                <ModalContent>
+                  {(onClose) => (
+                    <>
+                      <ModalHeader className="flex flex-col ">
+                        Modal Title
+                      </ModalHeader>
+                      <ModalBody>
+                        <ScrollArea
+                          className="  w-full  h-[600px] border-gray-600 rounded-3xl shadow-lg  border-[7px]"
+                          style={{
+                            background: `linear-gradient(${colorDegres}deg, ${bgcolor1}, ${bgcolor2})`,
+                          }}
+                        >
+                          <div className="grid mx-auto">
+                            {photoUrl && (
+                              <Image
+                                src={photoUrl}
+                                alt="profil"
+                                width={100}
+                                height={100}
+                                className="w-[60px] h-[60px] rounded-[60px] mx-auto my-2 "
+                              />
+                            )}
 
-                          <p
-                            className="text-xl text-center"
-                            style={{ color: color1 }}
-                          >
-                            @<span>{name} </span>
-                          </p>
-                          <div className="flex justify-center">
-                            {" "}
-                            <BsFillPatchCheckFill className="text-blue-400 ml-16" />
-                          </div>
-
-                          <p className="my-5 mx-10 text-gray-500 text-center text-[12px] ">
-                            {desc}
-                          </p>
-                          <div className="flex justify-center">
-                            <div className="flex items-center gap-4 my-1">
-                              <Badge variant="outline">
-                                <BsPhone />
-                                Outline
-                              </Badge>
-                              <Badge variant="outline">
-                                <span>
-                                  <FaLocationArrow />
-                                </span>
-                                Outline
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-center">
-                            <div className="flex items-center gap-2">
-                              {reseauxitems.map((item, index) => (
-                                <Link
-                                  href={item.reseaux_url}
-                                  target="_blank"
-                                  key={index}
-                                >
-                                  {returnIcon(item.icon, color1)}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-
-                          <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragEnd={handleDragEnd}
-                          >
-                            <SortableContext
-                              items={itemsdnd.map((item) => item.position)}
-                              strategy={verticalListSortingStrategy}
+                            <p
+                              className="text-xl text-center"
+                              style={{ color: color1 }}
                             >
-                              {itemsdnd.map((item, index) => (
-                                <SortableItem
-                                  key={item.position}
-                                  item={item}
-                                  index={index}
-                                  isDragOn={isDraggable}
-                                  backgroundColor={cardcolor}
-                                  borderRadius={cardBorderRadius}
-                                  borderRadiusColor={cardBorderRadiusColor}
-                                  padding={cardPadding}
-                                  margin={cardmargin}
-                                  title=""
-                                  url=""
-                                  witchComponent={item.type}
-                                />
-                              ))}
-                            </SortableContext>
-                          </DndContext>
-                        </div>
-                      </ScrollArea>
-                      <Button
-                        className="my-5"
-                        color="primary"
-                        onPress={lockUnlock}
-                      >
-                        {isHolding ? <LockOpenIcon /> : <LockIcon />}
-                      </Button>
-                    </ModalBody>
-                  </>
-                )}
-              </ModalContent>
+                              @<span>{name} </span>
+                            </p>
+                            <div className="flex justify-center">
+                              {" "}
+                              <BsFillPatchCheckFill className="text-blue-400 ml-16" />
+                            </div>
+
+                            <p className="my-5 mx-10 text-gray-500 text-center text-[12px] ">
+                              {desc}
+                            </p>
+                            <div className="flex justify-center">
+                              <div className="flex items-center gap-4 my-1">
+                                <Badge variant="outline">
+                                  <BsPhone />
+                                  Outline
+                                </Badge>
+                                <Badge variant="outline">
+                                  <span>
+                                    <FaLocationArrow />
+                                  </span>
+                                  Outline
+                                </Badge>
+                              </div>
+                            </div>
+
+                            <div className="flex justify-center">
+                              <div className="flex items-center gap-2">
+                                {reseauxitems.map((item, index) => (
+                                  <Link
+                                    href={item.reseaux_url}
+                                    target="_blank"
+                                    key={index}
+                                  >
+                                    {returnIcon(item.icon, color1)}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={handleDragEnd}
+                            >
+                              <SortableContext
+                                items={itemsdnd.map((item) => item.position)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {itemsdnd.map((item, index) => (
+                                  <SortableItem
+                                    key={item.position}
+                                    item={item}
+                                    index={index}
+                                    isDragOn={isDraggable}
+                                    backgroundColor={cardcolor}
+                                    borderRadius={cardBorderRadius}
+                                    borderRadiusColor={cardBorderRadiusColor}
+                                    padding={cardPadding}
+                                    margin={cardmargin}
+                                    isHolding={isHolding}
+                                    witchComponent={item.type}
+                                  />
+                                ))}
+                              </SortableContext>
+                            </DndContext>
+                          </div>
+                        </ScrollArea>
+                        <Button
+                          className="my-5"
+                          color="primary"
+                          onPress={lockUnlock}
+                        >
+                          {isHolding ? <LockOpenIcon /> : <LockIcon />}
+                        </Button>
+                      </ModalBody>
+                    </>
+                  )}
+                </ModalContent>
+              </ScrollArea>
             </Modal>
+
             <div className="grid gap-5 fixed bottom-2 end-3">
               <Button onPress={() => onOpen()}>
                 <SmartphoneIcon />
@@ -2900,11 +2389,11 @@ export default function Dashboard() {
                   <div className="flex items-center gap-4">
                     <RgbaStringColorPicker
                       color={bgcolor1}
-                      onChange={setbgColor1}
+                      onChange={(color) => setBgColor1(color)}
                     />
                     <RgbaStringColorPicker
                       color={bgcolor2}
-                      onChange={setbgColor2}
+                      onChange={(color) => setBgColor2(color)}
                     />
                     ;
                   </div>
@@ -2938,7 +2427,7 @@ export default function Dashboard() {
 
                   <RgbaStringColorPicker
                     color={cardBorderRadiusColor}
-                    onChange={setCardBorderRadiusColor}
+                    onChange={(color) => setCardBorderRadiusColorr(color)}
                   />
 
                   <p className="font-bold my-5">
@@ -2991,63 +2480,6 @@ export default function Dashboard() {
           </div>
         </ScrollArea>
       </div>
-    );
-  }
-  function analytics() {
-    const options = {
-      maintainAspectRatio: false, // Permet de désactiver le ratio d'aspect fixe
-    };
-    return (
-      <>
-        <div>
-          <p className="mt-10 ml-10 text-4xl font-bold underline">Analytics</p>
-          <br />
-          <br />
-          <br />
-          <br />
-          <p className="text-blue-500 font-semibold">Link bio</p>
-          <br />
-          <div className="rounded-md shadow-md p-10 lg:size-[600px] mx-5">
-            <Line
-              data={{
-                labels: ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
-                datasets: [
-                  {
-                    label: "revenue",
-                    data: [300, 200, 400, 34, 345, 500, 700, 1000, 1500],
-                  },
-                ],
-              }}
-              options={options}
-            />
-          </div>
-          <Separator className="my-[100px]" />
-
-          <p className="text-blue-500 font-semibold">Link shorter</p>
-          <br />
-          <div className="rounded-md shadow-md p-10 lg:size-[600px] mx-5">
-            <Line
-              data={{
-                labels: ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
-                datasets: [
-                  {
-                    label: "revenue",
-                    data: [300, 200, 400, 34, 345, 500, 700, 1000, 1500],
-                  },
-                ],
-              }}
-              options={options}
-            />
-          </div>
-        </div>
-      </>
-    );
-  }
-  function shortlink() {
-    return (
-      <>
-        <p className="mt-10 ml-10 text-4xl font-bold underline">shortlink</p>
-      </>
     );
   }
 }

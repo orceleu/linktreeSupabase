@@ -1,10 +1,10 @@
 "use client";
 import Image from "next/image";
-
+import { createContext, useCallback, useContext } from "react";
 //import React, { useMemo, memo, useCallback } from "react";
 import { supabase } from "./supabase/supabaseInstance";
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
@@ -19,24 +19,27 @@ import {
   NavbarMenuItem,
 } from "@nextui-org/react";
 import Link from "next/link";
-// Create a single supabase client for interacting with your database
+type ComponentProps = {
+  selected: string;
+};
 
-/*interface CounterProps {
-  count: number;
-  onIncrement: () => void;
-}
-
-const Counter: React.FC<CounterProps> = memo(({ count, onIncrement }) => {
-  console.log("Rendering Counter:", count);
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={onIncrement}>Increment</button>
-    </div>
-  );
-});*/
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [set1, setset1] = useState(false);
+  const [set2, setset2] = useState(false);
+  const Test = () => {
+    console.log("test component rendered");
+    return <div>Test Content</div>;
+  };
+  const setset11 = useCallback(() => {
+    console.log("set1 rerended");
+    setset1(!set1);
+  }, [set1]);
+
+  const setset22 = useCallback(() => {
+    console.log("set2 rendered");
+    setset2(!set2);
+  }, [set2]);
   /*
   const [count1, setCount1] = useState<number>(0);
   const [count2, setCount2] = useState<number>(0);
@@ -54,6 +57,7 @@ export default function Home() {
     return count1 * 2;
   }, [count1]);
 */
+
   const menuItems = [
     "Profile",
     "Dashboard",
@@ -216,13 +220,25 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <div>
+        <Test />
+        <p>{set1}</p>
+        <p>{set2}</p>
+        <Button onPress={() => setset11()}>click set1</Button>
+        <Button onPress={() => setset22()}>click set2</Button>
+      </div>
     </main>
   );
-} /*
-<div>
-        <h1>Counter 1</h1>
-        <Counter count={count1} onIncrement={incrementCount1} />
-        <h1>Counter 2</h1>
-        <Counter count={count2} onIncrement={incrementCount2} />
-        <p>Memoized Value: {memoizedValue}</p>
-      </div>*/
+}
+
+function independentComptest() {
+  const [text, setText] = useState(0);
+  console.log("independent component rendered");
+
+  return (
+    <>
+      <p>{text}</p>
+      <Button onClick={() => setText((prev) => prev + 1)}>increment</Button>
+    </>
+  );
+}
