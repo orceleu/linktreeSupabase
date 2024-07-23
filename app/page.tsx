@@ -1,14 +1,11 @@
 "use client";
-import Image from "next/image";
 import { createContext, useCallback, useContext } from "react";
 //import React, { useMemo, memo, useCallback } from "react";
 import { supabase } from "./supabase/supabaseInstance";
 import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
-import { memo, useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useState } from "react";
 import { Button } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
-import { Slider } from "@nextui-org/react";
 import {
   Navbar,
   NavbarBrand,
@@ -25,7 +22,7 @@ type ComponentProps = {
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [set1, setset1] = useState(false);
+  /* const [set1, setset1] = useState(false);
   const [set2, setset2] = useState(false);
   const Test = () => {
     console.log("test component rendered");
@@ -39,7 +36,7 @@ export default function Home() {
   const setset22 = useCallback(() => {
     console.log("set2 rendered");
     setset2(!set2);
-  }, [set2]);
+  }, [set2]);*/
   /*
   const [count1, setCount1] = useState<number>(0);
   const [count2, setCount2] = useState<number>(0);
@@ -220,25 +217,14 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div>
+    </main>
+  );
+}
+
+/*<div>
         <Test />
         <p>{set1}</p>
         <p>{set2}</p>
         <Button onPress={() => setset11()}>click set1</Button>
         <Button onPress={() => setset22()}>click set2</Button>
-      </div>
-    </main>
-  );
-}
-
-function independentComptest() {
-  const [text, setText] = useState(0);
-  console.log("independent component rendered");
-
-  return (
-    <>
-      <p>{text}</p>
-      <Button onClick={() => setText((prev) => prev + 1)}>increment</Button>
-    </>
-  );
-}
+      </div>*/

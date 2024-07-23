@@ -369,46 +369,39 @@ export default function Dashboard() {
     item: any,
     setNodeRef: any
   ) {
-    const handleLabelChangeForSite = useCallback(
-      (id: number, label: string) => {
-        setItemsdnd((prevInputs) =>
-          prevInputs.map((input) =>
-            input.position === id ? { ...input, texte: label } : input
-          )
-        );
-        setItemsdndForADD((prevInputs) =>
-          prevInputs.map((input) =>
-            input.position === id ? { ...input, texte: label } : input
-          )
-        );
-      },
-      []
-    );
-    const handleInputChangeForSite = useCallback(
-      (id: number, value: string) => {
-        setItemsdnd((prevInputs) =>
-          prevInputs.map((input) =>
-            input.position === id ? { ...input, url: value } : input
-          )
-        );
-        setItemsdndForADD((prevInputs) =>
-          prevInputs.map((input) =>
-            input.position === id ? { ...input, url: value } : input
-          )
-        );
-      },
-      []
-    );
-    const handleIsVisibleChangeForSite = useCallback(
-      (id: number, value: boolean) => {
-        setItemsdnd((prevInputs) =>
-          prevInputs.map((input) =>
-            input.position === id ? { ...input, is_active: value } : input
-          )
-        );
-      },
-      []
-    );
+    const handleLabelChangeForSite = (id: number, label: string) => {
+      setItemsdnd((prevInputs) =>
+        prevInputs.map((input) =>
+          input.position === id ? { ...input, texte: label } : input
+        )
+      );
+      setItemsdndForADD((prevInputs) =>
+        prevInputs.map((input) =>
+          input.position === id ? { ...input, texte: label } : input
+        )
+      );
+    };
+
+    const handleInputChangeForSite = (id: number, value: string) => {
+      setItemsdnd((prevInputs) =>
+        prevInputs.map((input) =>
+          input.position === id ? { ...input, url: value } : input
+        )
+      );
+      setItemsdndForADD((prevInputs) =>
+        prevInputs.map((input) =>
+          input.position === id ? { ...input, url: value } : input
+        )
+      );
+    };
+
+    const handleIsVisibleChangeForSite = (id: number, value: boolean) => {
+      setItemsdnd((prevInputs) =>
+        prevInputs.map((input) =>
+          input.position === id ? { ...input, is_active: value } : input
+        )
+      );
+    };
 
     switch (witchComponent) {
       case "COMPONENT_LINK":
