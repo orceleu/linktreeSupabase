@@ -107,7 +107,6 @@ import {
 } from "lucide-react";
 import { RgbaStringColorPicker } from "react-colorful";
 import Link from "next/link";
-import ReturnIcon from "./ReturnIcon";
 import { setTimeout } from "timers";
 import { SortableItem } from "./Devicednd";
 import {
@@ -118,6 +117,7 @@ import {
   updateComponentPosition,
   updateComponentUrl,
 } from "./supabaseFunction";
+import { returnReseauxIcon, ReturnIconMain } from "./ReturnIcon";
 
 interface ReseauxUrl {
   id: string;
@@ -180,27 +180,10 @@ export default function Dashboard() {
   const [selectedlink, setselectedLink] = useState("");
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [reseauxitems, setreseauxItems] = useState<ReseauxUrl[]>([
-    {
-      id: "1234",
-      is_active: true,
-      position: 0,
-      icon: "facebook",
-      reseaux_url: "https://facebook.com",
-      click: 0,
-      for_link_url: "betelgeuse",
-    },
-    {
-      id: "1235",
-      is_active: true,
-      position: 1,
-      icon: "instagram",
-      reseaux_url: "https://facebook.com2",
-      click: 0,
-      for_link_url: "betelgeuse",
-    },
-  ]);
-
+  const [reseauxitems, setreseauxItems] = useState<ReseauxUrl[]>([]);
+  const [reseauxitemsForAdd, setreseauxItemsForADD] = useState<ReseauxUrl[]>(
+    []
+  );
   const [itemsdnd, setItemsdnd] = useState<ComponentType[]>([]);
   const [itemsdndforAdd, setItemsdndForADD] = useState<ComponentType[]>([]);
   const [inputs, setInputs] = useState<ComponentType[]>([]);
@@ -353,7 +336,7 @@ export default function Dashboard() {
               )}
             </div>
 
-            {ReturnIcon(witchComponent)}
+            {ReturnIconMain(witchComponent)}
           </div>
 
           <div>
@@ -654,29 +637,6 @@ export default function Dashboard() {
   // Convert the Set to an Array and get the first value.
   const selectedOptionValue = Array.from(selectedOption)[0];
 
-  const returnIcon = (pos: string, color: string) => {
-    switch (pos) {
-      case "facebook":
-        return <FaFacebook className="w-7 h-7" style={{ color: color }} />;
-      case "instagram":
-        return <FaInstagram className="w-7 h-7" style={{ color: color }} />;
-      case "x":
-        return <BsTwitterX className="w-7 h-7" style={{ color: color }} />;
-      case "youtube":
-        return <BsYoutube className="w-7 h-7" style={{ color: color }} />;
-      case "twitch":
-        return <BsTwitch className="w-7 h-7" style={{ color: color }} />;
-      case "spotify":
-        return <BsSpotify className="w-7 h-7" style={{ color: color }} />;
-      case "discord":
-        return <BsDiscord className="w-7 h-7" style={{ color: color }} />;
-      case "patreon":
-        return <FaPatreon className="w-7 h-7" style={{ color: color }} />;
-      default:
-        return null;
-    }
-  };
-
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
 
@@ -721,7 +681,7 @@ export default function Dashboard() {
       setdesc(data[0].user_desc);
     }
 
-    // fetchReseauxLink();
+    fetchReseauxLink();
     fetchSiteLink();
   };
   const is_url_dispo = async () => {
@@ -746,6 +706,17 @@ export default function Dashboard() {
     if (error) console.log(error);
     if (data) setItemsdnd(data);
     console.log(`site feching: ${data}`);
+  };
+  const fetchReseauxLink = async () => {
+    const { data, error } = await supabase
+      .from("users_reseaux")
+      .select("*")
+      .eq("for_link_url", selectedUrl.current)
+      .order("position", { ascending: true });
+
+    if (error) console.log(error);
+    if (data) setreseauxItems(data);
+    console.log(`reseaux feching: ${data}`);
   };
   const updatePhotoUrl = async (url: string) => {
     const { data, error } = await supabase
@@ -883,6 +854,51 @@ export default function Dashboard() {
       )
     );
   };
+  const addReseauxItem = (icon: string) => {
+    const newId = reseauxitems.length;
+    setreseauxItems((prevItem) => [
+      ...prevItem,
+      {
+        id: v4().slice(0, 6).toString(),
+        is_active: true,
+        position: newId,
+        icon: icon,
+        reseaux_url: "",
+        click: 0,
+        for_link_url: selectedUrl.current,
+      },
+    ]);
+
+    setreseauxItemsForADD((prevItem) => [
+      ...prevItem,
+      {
+        id: v4().slice(0, 6).toString(),
+        is_active: true,
+        position: newId,
+        icon: icon,
+        reseaux_url: "",
+        click: 0,
+        for_link_url: selectedUrl.current,
+      },
+    ]);
+  };
+  const handleDeleteReseaux = (id: number) => {
+    const updatedItems = reseauxitems.filter((item) => item.position !== id);
+    //const updatedInputs = inputs.filter((input) => input.position !== id);
+
+    const rearrangedItems = updatedItems.map((item, index) => ({
+      ...item,
+      position: index + 1,
+    }));
+
+    /* const rearrangedInputs = updatedInputs.map((input, index) => ({
+      ...input,
+      position: index + 1,
+    }));*/
+
+    setreseauxItems(rearrangedItems);
+    //setInputs(rearrangedInputs);
+  };
 
   const addItem = (witchComponent: string) => {
     const newId = itemsdnd.length;
@@ -932,9 +948,7 @@ export default function Dashboard() {
       },
     ]);
   };
-  const addReseauxItem = (newValue: any) => {
-    [setreseauxItems((prevItem) => [...prevItem, newValue])];
-  };
+
   const handleDelete = (id: number) => {
     const updatedItems = itemsdnd.filter((item) => item.position !== id);
     const updatedInputs = inputs.filter((input) => input.position !== id);
@@ -1216,6 +1230,7 @@ export default function Dashboard() {
                 </ButtonGroup>
                 <br />
                 {yourlink.map((link, index) => (
+                  // for selecting the Url user
                   <p
                     key={index}
                     onClick={() => {
@@ -1224,6 +1239,7 @@ export default function Dashboard() {
                       setphotoUrl(link.photo_url);
                       setname(link.user_name);
                       setdesc(link.user_desc);
+                      fetchReseauxLink();
                       fetchSiteLink();
                     }}
                     className="text-blue-600"
@@ -1355,10 +1371,16 @@ export default function Dashboard() {
                       className="flex items-center gap-2 my-2"
                     >
                       <p key={index + 3}>
-                        {returnIcon(item.icon, "rgba(0, 0, 0, 1)")}
+                        {returnReseauxIcon(item.icon, "rgba(0, 0, 0, 1)")}
                       </p>
 
-                      <Input key={index + 4} value={item.reseaux_url} />
+                      <Input
+                        key={index + 4}
+                        value={item.reseaux_url}
+                        onChange={(e) =>
+                          handleResauxUrlChange(item.position, e.target.value)
+                        }
+                      />
                     </div>
                     <div key={index + 5} className="flex justify-end">
                       <div key={index + 6} className="flex items-center gap-2">
@@ -1366,6 +1388,11 @@ export default function Dashboard() {
                           show on page:
                         </p>
                         <Switch key={index + 8} />
+                        <Button
+                          onPress={() => handleDeleteReseaux(item.position)}
+                        >
+                          <TrashIcon />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1386,9 +1413,15 @@ export default function Dashboard() {
                       </DialogDescription>
                     </DialogHeader>
                     <div>
-                      <Button>click</Button>
-                      <Button>click</Button>
-                      <Button>click</Button>
+                      <Button onPress={() => addReseauxItem("FACEBOOK")}>
+                        <FaFacebook />
+                      </Button>
+                      <Button onPress={() => addReseauxItem("INSTAGRAM")}>
+                        <FaInstagram />
+                      </Button>
+                      <Button onPress={() => addReseauxItem("YOUTUBE")}>
+                        <BsYoutube />
+                      </Button>
                     </div>
                     <DialogFooter className="sm:justify-start">
                       <DialogClose asChild>
@@ -1760,7 +1793,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     {reseauxitems.map((item, index) => (
                       <Link href={item.reseaux_url} target="_blank" key={index}>
-                        {returnIcon(item.icon, color1)}
+                        {returnReseauxIcon(item.icon, color1)}
                       </Link>
                     ))}
                   </div>
@@ -1907,11 +1940,13 @@ export default function Dashboard() {
                   <p
                     key={index}
                     onClick={() => {
+                      //fetch all data with the current selected url
                       selectedUrl.current = link.link_url;
                       setselectedLink(link.link_url);
                       setphotoUrl(link.photo_url);
                       setname(link.user_name);
                       setdesc(link.user_desc);
+                      fetchReseauxLink();
                       fetchSiteLink();
                     }}
                     className="text-blue-600"
@@ -2039,10 +2074,16 @@ export default function Dashboard() {
                       className="flex items-center gap-2 my-2"
                     >
                       <p key={index + 3}>
-                        {returnIcon(item.icon, "rgba(0, 0, 0, 1)")}
+                        {returnReseauxIcon(item.icon, "rgba(0, 0, 0, 1)")}
                       </p>
 
-                      <Input key={index + 4} value={item.reseaux_url} />
+                      <Input
+                        key={index + 4}
+                        value={item.reseaux_url}
+                        onChange={(e) =>
+                          handleResauxUrlChange(item.position, e.target.value)
+                        }
+                      />
                     </div>
                     <div key={index + 5} className="flex justify-end">
                       <div key={index + 6} className="flex items-center gap-2">
@@ -2050,6 +2091,11 @@ export default function Dashboard() {
                           show on page:
                         </p>
                         <Switch key={index + 8} />
+                        <Button
+                          onPress={() => handleDeleteReseaux(item.position)}
+                        >
+                          <TrashIcon />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -2070,9 +2116,15 @@ export default function Dashboard() {
                       </DialogDescription>
                     </DialogHeader>
                     <div>
-                      <Button>click</Button>
-                      <Button>click</Button>
-                      <Button>click</Button>
+                      <Button onPress={() => addReseauxItem("FACEBOOK")}>
+                        <FaFacebook />
+                      </Button>
+                      <Button onPress={() => addReseauxItem("INSTAGRAM")}>
+                        <FaInstagram />
+                      </Button>
+                      <Button onPress={() => addReseauxItem("YOUTUBE")}>
+                        <BsYoutube />
+                      </Button>
                     </div>
                     <DialogFooter className="sm:justify-start">
                       <DialogClose asChild>
@@ -2315,7 +2367,7 @@ export default function Dashboard() {
                                     target="_blank"
                                     key={index}
                                   >
-                                    {returnIcon(item.icon, color1)}
+                                    {returnReseauxIcon(item.icon, color1)}
                                   </Link>
                                 ))}
                               </div>

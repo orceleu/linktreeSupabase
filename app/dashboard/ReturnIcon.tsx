@@ -1,9 +1,16 @@
 import { LinkIcon, SeparatorHorizontalIcon, TextIcon } from "lucide-react";
 import React from "react";
-import { BsCashCoin, BsSpotify } from "react-icons/bs";
-import { FaYoutube } from "react-icons/fa";
+import {
+  BsCashCoin,
+  BsDiscord,
+  BsSpotify,
+  BsTwitch,
+  BsTwitterX,
+  BsYoutube,
+} from "react-icons/bs";
+import { FaFacebook, FaInstagram, FaPatreon, FaYoutube } from "react-icons/fa";
 
-export default function ReturnIcon(iconChoosen: string) {
+const ReturnIconMain = (iconChoosen: string) => {
   switch (iconChoosen) {
     case "COMPONENT_LINK":
       return (
@@ -69,4 +76,27 @@ export default function ReturnIcon(iconChoosen: string) {
       null;
       break;
   }
-}
+};
+const returnReseauxIcon = (icon: string, color: string) => {
+  switch (icon) {
+    case "FACEBOOK":
+      return <FaFacebook className="w-7 h-7" style={{ color: color }} />;
+    case "INSTAGRAM":
+      return <FaInstagram className="w-7 h-7" style={{ color: color }} />;
+    case "X":
+      return <BsTwitterX className="w-7 h-7" style={{ color: color }} />;
+    case "YOUTUBE":
+      return <BsYoutube className="w-7 h-7" style={{ color: color }} />;
+    case "TWITCH":
+      return <BsTwitch className="w-7 h-7" style={{ color: color }} />;
+    case "SPOTIFY":
+      return <BsSpotify className="w-7 h-7" style={{ color: color }} />;
+    case "DISCORD":
+      return <BsDiscord className="w-7 h-7" style={{ color: color }} />;
+    case "PATREON":
+      return <FaPatreon className="w-7 h-7" style={{ color: color }} />;
+    default:
+      return null;
+  }
+};
+export { ReturnIconMain, returnReseauxIcon };
