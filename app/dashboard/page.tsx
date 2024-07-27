@@ -971,7 +971,7 @@ export default function Dashboard() {
     const { data, error } = await supabaseBrowserClient.auth.getUser();
     //const {data, error} = await supabase.auth.getSession();
     if (error || !data?.user) {
-      // router.push("/login");
+      router.push("/login");
     }
     if (data.user?.email !== null && data.user?.email !== undefined) {
       setEmail(data.user.email);

@@ -1,22 +1,19 @@
 "use client";
 import React, { useTransition } from "react";
-import { login, signup } from "./actions";
+import { signup } from "../login/actions";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { BsGoogle } from "react-icons/bs";
-import { Button } from "@nextui-org/button";
-import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const handleClickloginButton = (formData: FormData) => {
+  const handleClickCreateAccountButton = (formData: FormData) => {
     startTransition(async () => {
-      const errorMessage = await login(formData);
+      const errorMessage = await signup(formData);
       if (errorMessage) {
-        console.log("error while login");
+        console.log(errorMessage);
       } else {
-        router.push("/dashboard");
+        router.push("/emailconfirmation");
       }
     });
   };
@@ -56,33 +53,26 @@ export default function LoginPage() {
       </div>
       <div className="flex items-center justify-between">
         <button
-          formAction={handleClickloginButton}
+          formAction={handleClickCreateAccountButton}
           disabled={isPending}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-[30px] focus:outline-none focus:shadow-outline"
         >
-          {isPending ? <Loader2 /> : "login"}
+          {isPending ? <Loader2 /> : "signup"}
         </button>
 
         <p>
           {" "}
-          don't have any account{" "}
+          allready have account{" "}
           <span
             onClick={() => {
-              router.push("/signup");
+              router.push("/login");
             }}
             className="text-emerald-600"
           >
-            signup
+            login
           </span>
         </p>
       </div>
-
-      <Separator className="my-3" />
-
-      <Button>
-        <BsGoogle />
-        Login with google
-      </Button>
     </form>
   );
 }
