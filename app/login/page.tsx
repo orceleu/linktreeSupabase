@@ -65,7 +65,7 @@ export default function LoginPage() {
 
         <p>
           {" "}
-          don't have any account{" "}
+          dont have any account{" "}
           <span
             onClick={() => {
               router.push("/signup");
