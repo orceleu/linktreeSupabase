@@ -13,7 +13,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
+import { YouTubeEmbed } from "react-social-media-embed";
+import { TikTokEmbed } from "react-social-media-embed";
+import { LinkedInEmbed } from "react-social-media-embed";
+import { InstagramEmbed } from "react-social-media-embed";
 import { supabase } from "../supabase/supabaseInstance";
 import {
   HexColorPicker,
@@ -39,6 +42,9 @@ interface LinkRetriv {
 }
 import "react-spotify-embed";
 import { Spotify } from "react-spotify-embed";
+import { Input } from "@nextui-org/react";
+import Link from "next/link";
+import { returnReseauxIcon } from "../dashboard/ReturnIcon";
 interface Reseaux {
   facebook: string;
   youtube: string;
@@ -50,18 +56,7 @@ interface Reseaux {
   pinterest: string;
   discord: string;
 }
-interface SiteUrl {
-  site1: string;
-  site2: string;
-  site3: string;
-  site4: string;
-  site5: string;
-  site6: string;
-  site7: string;
-  site8: string;
-  site9: string;
-  site10: string;
-}
+
 interface ReseauxClick {
   facebookclick: number;
   youtubeclick: number;
@@ -78,6 +73,15 @@ interface Props {
   img2: string;
   img3: string;
   img4: string;
+}
+interface ReseauxUrl {
+  id: string;
+  is_active: boolean;
+  position: number;
+  icon: string;
+  reseaux_url: string;
+  click: number;
+  for_link_url: string;
 }
 interface Appareance {
   mainBackground: string;
@@ -96,36 +100,28 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [color1, setColor] = useState("");
   const [color2, setColor2] = useState("");
   const [color3, setColor3] = useState("");
-
+  const [cardBorderRadiusColor, setCardBorderRadiusColor] = useState(
+    " rgba(255, 0, 213, 1)"
+  );
+  const [cardPadding, setCardPadding] = useState<number | number[]>(15);
+  const [cardmargin, setCardmargin] = useState<number | number[]>(15);
+  const [colorDegres, setColorDegres] = useState<number | number[]>(45);
+  const [cardcolor, setCardColor] = useState(" rgba(152, 205, 166, 0)");
+  const [cardBorderRadius, setCardBorderRadius] = useState<number | number[]>(
+    15
+  );
+  const [reseauxitems, setreseauxItems] = useState<ReseauxUrl[]>([]);
   const [imageUrl, setImageUrl] = useState("https://via.placeholder.com/600"); // URL initiale de l'image
 
   const [reseauxClick, setReseauxClick] = useState<ReseauxClick[]>([]);
 
-  /* const [isfbnull, setFbnull] = useState(true);
-  const [isytnull, setytnull] = useState(true);
-  const [isignull, setignull] = useState(true);
-  const [isxnull, setxnull] = useState(true);
-  const [issnapnull, setsnapnull] = useState(true);
-  const [isgitnull, setgitnull] = useState(true);
-  const [isonlynull, setonlynull] = useState(true);
-  const [ispintnull, setpintnull] = useState(true);
-  const [isdisconull, setdisconull] = useState(true);*/
+  const [itemsdnd, setItemsdnd] = useState<ComponentType[]>([]);
+
   const [userNotFound, setUserNotfound] = useState(false);
   const [reseaux, setReseaux] = useState<Reseaux[]>([]);
-  const [siteUrl, setSiteUrl] = useState<SiteUrl[]>([
-    {
-      site1: "1handforhaiti.org;handforhaiti",
-      site2: "2site.com;support my work",
-      site3: "3site.com;my portfoliot",
-      site4: "4site.com;my shop",
-      site5: "5handforhaiti.org;handforhaiti",
-      site6: "7site.com;support my work",
-      site7: "10site.com;my portfoliot",
-      site8: "6site.com;my shop",
-      site9: "8handforhaiti.org;handforhaiti",
-      site10: "9site.com;support my work",
-    },
-  ]);
+
+  const [name, setname] = useState("");
+  const [desc, setdesc] = useState("");
   const [appareance, setAppareance] = useState<Appareance[]>([
     //probleme de boucle ,l'index premier actualise le rendu et les autre n'ont pas le temp de s'affecter
     {
@@ -149,136 +145,43 @@ export default function Page({ params }: { params: { slug: string } }) {
       bordersRadius: "40px",
     },
   ];
-  function changeappareance() {
-    setAppareance(simpleAppareance);
-  }
-  const bg = "87e6c1";
-  const [youtubeEmbededUrl, setYoutubeEmbededUrl] = useState<SiteUrl[]>([]);
-  const [filteredArray, setFilteredArray] = useState<string[]>([]);
-  const [filteredSiteUrl, setFilteredSiteUrl] = useState<string[]>([]);
-  const [filteredYoutubeEmbeded, setFilteredYoutubeEmbeded] = useState<
-    string[]
-  >([]);
-  const [originalString, setOriginalString] = useState<string>(
-    "1mysite.com;Buy me a coffe"
-  );
 
-  //selectionne embedebvideo et siteUrlPlus_title separement en fonction supabase
-  // Fonction pour séparer la chaîne en deux parties à partir de l'indicateur ";"
-  const splitString = (str: string): [string, string] => {
-    const [firstPart, secondPart] = str.split(";");
-    return [firstPart, secondPart];
-  };
-
-  useEffect(() => {
-    console.log(appareance[0].mainBackground);
-
-    // Transformer l'objet en tableau de paires [clé, valeur]
-    const reseauxList: string[] = reseaux.flatMap((reseau) =>
-      Object.values(reseau)
-    );
-    const siteUrlList: string[] = siteUrl.flatMap((reseau) =>
-      Object.values(reseau)
-    );
-
-    // Trier les valeurs par ordre croissant en fonction du préfixe numérique
-    const sortedList = reseauxList.sort((a, b) => {
-      const numA = parseInt(a, 10);
-      const numB = parseInt(b, 10);
-      return numA - numB;
-    });
-    const sortedSiteUrlList = siteUrlList.sort((a, b) => {
-      const numA = parseInt(a, 10);
-      const numB = parseInt(b, 10);
-      return numA - numB;
-    });
-
-    // Mettre à jour l'état du tableau filtré
-    setFilteredArray(sortedList);
-    setFilteredSiteUrl(sortedSiteUrlList);
-  }, [reseaux]);
-
-  //appeler lors de lintegration de lurl ahref
-  function removeLeadingCharacter(str: string, charToRemove: string): string {
-    if (str.startsWith(charToRemove)) {
-      return str.slice(1);
-    }
-    return str;
-  }
-
-  const fetchdata = async () => {
-    const countriesWithCitiesQuery = supabase
+  const fetchAllLink = async () => {
+    const { data, error } = await supabase
       .from("link")
       .select("*")
       .eq("link_url", urlId);
+    if (error) console.log(error);
 
-    type CountriesWithCities = QueryData<typeof countriesWithCitiesQuery>;
-
-    const { data, error } = await countriesWithCitiesQuery;
-
-    if (error) throw error;
-    console.log(data);
-    if (data.length == 0) {
-      setUserNotfound(true);
+    if (data) {
+      setname(data[0]?.user_name);
+      setdesc(data[0]?.user_desc);
     }
-    const countriesWithCities: CountriesWithCities = data;
 
-    setCountrie(countriesWithCities);
-    console.log(countriesWithCities);
+    fetchReseauxLink();
+    fetchComponent();
   };
+  const fetchReseauxLink = async () => {
+    const { data, error } = await supabase
+      .from("users_reseaux")
+      .select("*")
+      .eq("for_link_url", urlId)
+      .order("position", { ascending: true });
 
-  const fetchreseaux = async () => {
-    const reseauxdata = supabase
-      .from("usersreseaux")
-      .select(
-        `facebook,
-        youtube,
-        instagram,
-        x,
-        snapchat,
-        github,
-        discord,
-        pinterest,
-        onlyfans`
-      )
-      .eq("usersreseauxid", urlId);
+    if (error) console.log(error);
+    if (data) setreseauxItems(data);
+    console.log(`reseaux feching: ${data}`);
+  };
+  const fetchComponent = async () => {
+    const { data, error } = await supabase
+      .from("component")
+      .select("*")
+      .eq("for_link_url", urlId)
+      .order("position", { ascending: true });
 
-    type reseauxdata = QueryData<typeof reseauxdata>;
-    const { data, error } = await reseauxdata;
-    if (error) throw error;
-    const result: reseauxdata = data;
-
-    setReseaux(result);
-
-    /*if (reseaux[0]?.facebook !== null && reseaux[0]?.facebook !== undefined) {
-      setFbnull(false);
-    }
-    if (reseaux[0]?.youtube !== null && reseaux[0]?.youtube !== undefined) {
-      setytnull(false);
-    }
-    if (reseaux[0]?.instagram !== null && reseaux[0]?.instagram !== undefined) {
-      setignull(false);
-    }
-    if (reseaux[0]?.x !== null && reseaux[0]?.x !== undefined) {
-      setxnull(false);
-    }
-    if (reseaux[0]?.snapchat !== null && reseaux[0]?.snapchat !== undefined) {
-      setsnapnull(false);
-    }
-    if (reseaux[0]?.discord !== null && reseaux[0]?.discord !== undefined) {
-      setdisconull(false);
-    }
-    if (reseaux[0]?.onlyfans !== null && reseaux[0]?.onlyfans !== undefined) {
-      setonlynull(false);
-    }
-    if (reseaux[0]?.github !== null && reseaux[0]?.github !== undefined) {
-      setgitnull(false);
-    }
-    if (reseaux[0]?.pinterest !== null && reseaux[0]?.pinterest !== undefined) {
-      setpintnull(false);
-    }
-
-    console.log(isfbnull);*/
+    if (error) console.log(error);
+    if (data) setItemsdnd(data);
+    console.log(`component feching: ${data}`);
   };
 
   const fetchreseauxClick = async () => {
@@ -361,18 +264,17 @@ export default function Page({ params }: { params: { slug: string } }) {
     ) {
       setTable(params.slug);
       if (urlId !== "") {
-        fetchdata();
-        fetchreseaux();
-        fetchreseauxClick();
+        fetchAllLink();
       }
     }
-  }, [urlId, reseaux[0]?.facebook]);
+  }, [urlId]);
   /* <Carroussel
                 img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
                 img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
                 img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
                 img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
               />*/
+
   return (
     <main
       style={{
@@ -380,28 +282,6 @@ export default function Page({ params }: { params: { slug: string } }) {
         backgroundImage: `url(${imageUrl})`,
       }}
     >
-      <RgbaStringColorPicker color={color1} onChange={setColor} />;
-      <RgbaStringColorPicker color={color2} onChange={setColor2} />;
-      <RgbaStringColorPicker color={color3} onChange={setColor3} />
-      <p>{color3}</p>
-      <div>
-        <p style={{ fontFamily: "Roboto, sans-serif" }}>
-          Ceci est un paragraphe avec la police Roboto.
-        </p>
-        <p style={{ fontFamily: "Open Sans, sans-serif" }}>
-          Ceci est un paragraphe avec la police Open Sans.
-        </p>
-        <p style={{ fontFamily: "Lobster, cursive" }}>
-          Ceci est un paragraphe avec la police Lobster.
-        </p>
-        <Button
-          onClick={() => {
-            changeappareance();
-          }}
-        >
-          change appareance
-        </Button>
-      </div>
       <Button variant="ghost" className="mx-2 my-2">
         <Share2Icon />
       </Button>
@@ -412,7 +292,7 @@ export default function Page({ params }: { params: { slug: string } }) {
           </>
         ) : (
           <div className="  flex justify-center ">
-            <div className="grid  ">
+            <div className="grid  mx-10">
               <Image
                 src={claireremovebg}
                 alt=""
@@ -422,209 +302,38 @@ export default function Page({ params }: { params: { slug: string } }) {
                 style={{ color: appareance[0].nameColor }}
                 className={`text-xl  text-center`}
               >
-                {country[0]?.user_name}
+                {name}
               </p>
               <p
                 style={{ color: appareance[0].descColor }}
                 className={`my-5 text-center mx-10`}
               >
-                {country[0]?.user_desc}
+                {desc}
               </p>
-              <Carroussel
-                img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
-                img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
-                img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
-                img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
-              />
-              <div className="flex justify-center my-5">
-                <Spotify
-                  style={{
-                    height: 500,
-                    background: appareance[0].mainBackground,
-                  }}
-                  className="w-full mx-5 "
-                  link="https://open.spotify.com/album/0fUy6IdLHDpGNwavIlhEsl?si=mTiITmlHQpaGkoivGTv8Jw"
-                />
+              <div className="flex justify-center">
+                <div className="flex items-center gap-2">
+                  {reseauxitems.map((item, index) => (
+                    <Link href={item.reseaux_url} target="_blank" key={index}>
+                      {returnReseauxIcon(item.icon, color1)}
+                    </Link>
+                  ))}
+                </div>
               </div>
-
-              <div className="sm:mt-3 md:mt-5">
-                {filteredArray.map((item, index) => {
-                  // Ne rendre la div que si l'élément n'est pas vide
-                  if (item) {
-                    let reseauxCardTitle = "";
-                    if (item.includes("facebook")) {
-                      reseauxCardTitle = "facebook";
-                    } else if (item.includes("youtube")) {
-                      reseauxCardTitle = "youtube";
-                    } else if (item.includes("pinterest")) {
-                      reseauxCardTitle = "pinterest";
-                    } else if (item.includes("x")) {
-                      reseauxCardTitle = "x";
-                    } else if (item.includes("instagram")) {
-                      reseauxCardTitle = "instagram";
-                    } else if (item.includes("onlyfan")) {
-                      reseauxCardTitle = "onlyfan";
-                    } else if (item.includes("snapchat")) {
-                      reseauxCardTitle = "snapchat";
-                    } else if (item.includes("discord")) {
-                      reseauxCardTitle = "discord";
-                    } else {
-                      reseauxCardTitle = "any";
-                    }
-
-                    return (
-                      <a
-                        href={`https://www.${removeLeadingCharacter(
-                          item,
-                          item.charAt(0)
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        key={index}
-                      >
-                        <div
-                          style={{
-                            backgroundColor: appareance[0].cardColor,
-                            borderRadius: appareance[0].bordersRadius,
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              appareance[0].mainBackground;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              appareance[0].cardColor;
-                          }}
-                          className={`lg:max-w-[1000px]  overflow-hidden shadow-lg  m-4 cursor-pointer `}
-                          onClick={() => {
-                            // console.log(item);
-
-                            if (item.includes("facebook")) {
-                              console.log("facebook clicked");
-                              updateFacebookClick(
-                                reseauxClick[0]?.facebookclick
-                              );
-                            } else if (item.includes("instagram")) {
-                              console.log("instagram cliked");
-                              updateInstagramClick(
-                                reseauxClick[0]?.instagramclick
-                              );
-                            } else if (item.includes("youtube")) {
-                              console.log("youtube cliked");
-                              updateYoutubeClick(reseauxClick[0]?.youtubeclick);
-                            } else if (item.includes("x")) {
-                              console.log("x cliked");
-                              updateXClick(reseauxClick[0]?.xclick);
-                            } else if (item.includes("pinterest")) {
-                              console.log("pinterest cliked");
-                              updatePinterestClick(
-                                reseauxClick[0]?.pinterestclick
-                              );
-                            }
-
-                            // updateFacebookClick(reseauxClick[0]?.facebookclick);
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <p
-                              style={{ color: appareance[0].titleCardColor }}
-                              className={`font-bold text-xl   mx-auto my-auto text-center`}
-                            >
-                              {reseauxCardTitle}
-                            </p>
-                          </div>
-                        </div>
-                      </a>
-                    );
-                  }
-                  return null; // Ne rien rendre si l'élément est vide
-                })}
+              <div className="my-10">
+                {itemsdnd.map((item, index) => (
+                  <ComponentToReturn
+                    key={item.position}
+                    item={item}
+                    backgroundColor={cardcolor}
+                    borderRadius={cardBorderRadius}
+                    borderRadiusColor={cardBorderRadiusColor}
+                    padding={cardPadding}
+                    margin={cardmargin}
+                    witchComponent={item.type}
+                  />
+                ))}
               </div>
-              <br />
-
-              <div className="mt-10">
-                {filteredSiteUrl.map((item, index) => {
-                  // Ne rendre la div que si l'élément n'est pas vide
-                  if (item) {
-                    let removedFirstChar = removeLeadingCharacter(
-                      item,
-                      item.charAt(0)
-                    );
-                    const [firstPart, secondPart] =
-                      splitString(removedFirstChar);
-
-                    return (
-                      <a
-                        href={`https://www.${firstPart}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        key={index}
-                      >
-                        <div
-                          style={{
-                            backgroundColor: color3,
-                            borderRadius: appareance[0].bordersRadius,
-
-                            border: `2px solid ${appareance[0].outlinedCarcColor}`,
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              appareance[0].mainBackground;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = color3;
-                          }}
-                          className={`lg:max-w-[1000px]   overflow-hidden shadow-lg   m-4 cursor-pointer `}
-                          onClick={() => {
-                            // console.log(item);
-
-                            if (item.includes("facebook")) {
-                              console.log("facebook clicked");
-                              updateFacebookClick(
-                                reseauxClick[0]?.facebookclick
-                              );
-                            } else if (item.includes("instagram")) {
-                              console.log("instagram cliked");
-                              updateInstagramClick(
-                                reseauxClick[0]?.instagramclick
-                              );
-                            } else if (item.includes("youtube")) {
-                              console.log("youtube cliked");
-                              updateYoutubeClick(reseauxClick[0]?.youtubeclick);
-                            } else if (item.includes("x")) {
-                              console.log("x cliked");
-                              updateXClick(reseauxClick[0]?.xclick);
-                            } else if (item.includes("pinterest")) {
-                              console.log("pinterest cliked");
-                              updatePinterestClick(
-                                reseauxClick[0]?.pinterestclick
-                              );
-                            }
-
-                            // updateFacebookClick(reseauxClick[0]?.facebookclick);
-                          }}
-                        >
-                          <div className="px-6 py-4">
-                            <p
-                              style={{
-                                color: appareance[0].titleCardColor,
-                              }}
-                              className={`font-bold text-xl  mx-auto my-auto text-center`}
-                            >
-                              {secondPart}
-                            </p>
-                          </div>
-                        </div>
-                      </a>
-                    );
-                  }
-                  return null; // Ne rien rendre si l'élément est vide
-                })}
-              </div>
-              <br />
-              <br />
             </div>
-
             <Button
               variant="outline"
               className="rounded-[50px] fixed bottom-4 sm:mx-auto lg:end-5"
@@ -637,6 +346,135 @@ export default function Page({ params }: { params: { slug: string } }) {
     </main>
   );
 }
+
+interface ComponentType {
+  id: string;
+  is_active: boolean;
+  position: number;
+  type: string;
+  texte: string;
+  photo_url: string;
+  click: number;
+  url: string;
+  for_link_url: string;
+}
+interface SortableItemProps {
+  item: ComponentType;
+  backgroundColor: string;
+  borderRadius: number | number[];
+  borderRadiusColor: string;
+  padding: number | number[];
+  margin: number | number[];
+  witchComponent: string;
+}
+
+const ComponentToReturn: React.FC<SortableItemProps> = ({
+  item,
+  backgroundColor,
+  borderRadius,
+  borderRadiusColor,
+  padding,
+  margin,
+  witchComponent,
+}) => {
+  const returnComponent = (component: string) => {
+    switch (component) {
+      case "COMPONENT_YOUTUBE_EMB":
+        return (
+          <div className="rounded-[20px] my-5">
+            <YouTubeEmbed
+              className="w-full mx-5  my-5 rounded-[20px]"
+              url=">https://youtu.be/TLGFTH4s_0Y?si=3rOU1LiQfpSYFHnz"
+              height={220}
+            />{" "}
+          </div>
+        );
+      case "TIKTOK_EMB":
+        return (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <TikTokEmbed
+              className="w-full mx-5  my-5"
+              url="https://www.tiktok.com/@epicgardening/video/7055411162212633903"
+            />
+          </div>
+        );
+      case "LINKEDIN_EMB":
+        return (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <LinkedInEmbed
+              className="w-full mx-5  my-5"
+              url="https://www.linkedin.com/embed/feed/update/urn:li:share:6898694772484112384"
+              postUrl="https://www.linkedin.com/posts/peterdiamandis_5-discoveries-the-james-webb-telescope-will-activity-6898694773406875648-z-D7"
+              height={570}
+            />
+          </div>
+        );
+
+      case "INSTAGRAM_EMB":
+        return (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <InstagramEmbed
+              className="w-full mx-5  my-5"
+              url="https://www.instagram.com/p/CUbHfhpswxt/"
+            />
+          </div>
+        );
+      case "COMPONENT_TEXT":
+        return (
+          <>
+            <p className="p-5 text-center">{item.texte}</p>
+          </>
+        );
+      case "COMPONENT_SPOTIFY":
+        return (
+          <Spotify
+            className="w-full mx-5  my-5"
+            link="https://open.spotify.com/album/0fUy6IdLHDpGNwavIlhEsl?si=mTiITmlHQpaGkoivGTv8Jw"
+          />
+        );
+      case "COMPONENT_SEPARATOR":
+        return (
+          <div className="flex justify-center">
+            <Separator className="my-5 w-[200px]" />
+          </div>
+        );
+      case "COMPONENT_LINK":
+        return (
+          <Link href={item.url} target="_blank">
+            {" "}
+            <div
+              style={{
+                backgroundColor: backgroundColor,
+                border: `1px solid ${borderRadiusColor}`,
+                borderRadius: `${borderRadius}px`,
+                margin: `${margin}px`,
+
+                padding: `${padding}px`,
+              }}
+              className="w-full "
+            >
+              <p className="text-center ">{item.texte}</p>
+            </div>
+          </Link>
+        );
+      case "COMPONENT_FORM":
+        return (
+          <div className="rounded-md shadow-md p-5  bg-slate-200">
+            <Input label="Full name:" />
+            <br />
+            <Input label="Email:" />
+          </div>
+        );
+      default:
+        null;
+        break;
+    }
+  };
+  if (item.is_active) {
+    return <>{returnComponent(witchComponent)}</>;
+  }
+};
+
 const Carroussel: React.FC<Props> = ({ img1, img2, img3, img4 }) => {
   const plugin = useRef(Autoplay({ delay: 2000, stopOnInteraction: true }));
   const [windowSize, setWindowSize] = useState({
@@ -713,3 +551,25 @@ const Carroussel: React.FC<Props> = ({ img1, img2, img3, img4 }) => {
     </div>
   );
 };
+/*
+<Carroussel
+                img1="https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-"
+                img2="https://www.youtube.com/embed/4WCxtdLDLsE?si=gakX2Jw-l9hy-uXw"
+                img3="https://www.youtube.com/embed/5SAud9NhxZQ?si=kaZLW6Ht3Yovnt7s"
+                img4="https://www.youtube.com/embed/5DdGdY_JJ9I?si=BPOienLkwAPxF2KW"
+              />
+
+              <br />
+
+               <div>
+        <p style={{ fontFamily: "Roboto, sans-serif" }}>
+          Ceci est un paragraphe avec la police Roboto.
+        </p>
+        <p style={{ fontFamily: "Open Sans, sans-serif" }}>
+          Ceci est un paragraphe avec la police Open Sans.
+        </p>
+        <p style={{ fontFamily: "Lobster, cursive" }}>
+          Ceci est un paragraphe avec la police Lobster.
+        </p>
+      </div>
+*/

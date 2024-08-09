@@ -136,13 +136,13 @@ export default function Home() {
         </NavbarContent>
         <NavbarContent justify="end">
           <NavbarItem className="hidden lg:flex">
-            <Link href="#">Login</Link>
+            <Link href="/login">Login</Link>
           </NavbarItem>
           <NavbarItem>
             <Button
               as={Link}
               color="primary"
-              href="#"
+              href="/signup"
               variant="flat"
               className="text-fuchsia-800 font-bold"
             >

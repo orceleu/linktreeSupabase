@@ -87,7 +87,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
           />
         );
       case "COMPONENT_SEPARATOR":
-        return <Separator className="my-5" />;
+        return <Separator className="my-5 w-full bg-h " />;
+
       case "COMPONENT_LINK":
         return (
           <div

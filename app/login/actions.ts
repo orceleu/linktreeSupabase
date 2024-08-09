@@ -4,7 +4,33 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "../supabase/server";
 import { getErrorMessage } from "@/lib/utils";
+import { headers } from "next/headers";
 const supabase = createClient();
+
+export async function signInWithGoogle() {
+  /*const origin = headers().get("origin");
+
+  //const supabase = createClient(process.env.NEXT_PUBLIC_ SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANNON_KEY);
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+  if (error) {
+    console.error(error);
+    // Handle error appropriately
+    return;
+  }
+  if (data?.url) {
+    return redirect(data.url);
+    //console.log(data.url);
+  }*/
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+  });
+  if (error) console.error("Error: ", error.message);
+}
 export async function login(formData: FormData) {
   // type-casting here for convenience
   // in practice, you should validate your inputs

@@ -111,6 +111,7 @@ import { setTimeout } from "timers";
 import { SortableItem } from "./Devicednd";
 import {
   addComponent,
+  addReseauxLink,
   deleteComponentUrl,
   updateActiveUrl,
   updateComponentCardText,
@@ -118,6 +119,7 @@ import {
   updateComponentUrl,
 } from "./supabaseFunction";
 import { returnReseauxIcon, ReturnIconMain } from "./ReturnIcon";
+import { link } from "fs";
 
 interface ReseauxUrl {
   id: string;
@@ -213,7 +215,7 @@ export default function Dashboard() {
   //url user selectionne
   let selectedUrl = useRef("*");
   //let updatedItem = useRef<SiteUrl[]>([]);
-  const [selectedOption, setSelectedOption] = useState(new Set(["merge"]));
+  const [selectedOption, setSelectedOption] = useState("");
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -619,14 +621,14 @@ export default function Dashboard() {
     }
   }
 
-  const descriptionsMap = {
+  /*const descriptionsMap = {
     merge:
       "All commits from the source branch are added to the destination branch via a merge commit.",
     squash:
       "All commits from the source branch are added to the destination branch as a single commit.",
     rebase:
       "All commits from the source branch are added to the destination branch individually.",
-  };
+  };*/
 
   const labelsMap: any = {
     merge: "Create a merge commit",
@@ -635,7 +637,7 @@ export default function Dashboard() {
   };
 
   // Convert the Set to an Array and get the first value.
-  const selectedOptionValue = Array.from(selectedOption)[0];
+  // const selectedOptionValue = Array.from(selectedOption)[0];
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -676,7 +678,7 @@ export default function Dashboard() {
       setyourlink(data);
       setselectedLink(data[0]?.link_url);
       setphotoUrl(data[0].photo_url);
-
+      setSelectedOption(data[0]?.link_url);
       setname(data[0].user_name);
       setdesc(data[0].user_desc);
     }
@@ -815,15 +817,6 @@ export default function Dashboard() {
     }
   };
 
-  const addSitesLink = async () => {
-    const { data, error } = await supabase
-      .from("component")
-      .insert(itemsdndforAdd);
-    if (error) console.log(error);
-    console.log(data);
-    setItemsdndForADD([]);
-  };
-
   //******************************Supabase File Upload*/
 
   const uploadProfileImg = async (e: any) => {
@@ -849,6 +842,11 @@ export default function Dashboard() {
 
   const handleResauxUrlChange = (id: number, value: string) => {
     setreseauxItems((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, reseaux_url: value } : input
+      )
+    );
+    setreseauxItemsForADD((prevInputs) =>
       prevInputs.map((input) =>
         input.position === id ? { ...input, reseaux_url: value } : input
       )
@@ -1052,6 +1050,16 @@ export default function Dashboard() {
       console.log("non disponible");
     }
   }, [usersurl]);
+  useEffect(() => {
+    //fetchAlldatawithClick(yourlink[0])
+    selectedUrl.current = yourlink[0]?.link_url;
+    setselectedLink(yourlink[0]?.link_url);
+    setphotoUrl(yourlink[0]?.photo_url);
+    setname(yourlink[0]?.user_name);
+    setdesc(yourlink[0]?.user_desc);
+    fetchReseauxLink();
+    fetchSiteLink();
+  }, [selectedOption]);
 
   return (
     <>
@@ -1191,62 +1199,45 @@ export default function Dashboard() {
             {gridlayoutShow ? (
               <>
                 <p className="my-5">All link</p>
-                <ButtonGroup variant="flat">
-                  <Button>{labelsMap[selectedOptionValue]}</Button>
-                  <Dropdown placement="bottom-end">
-                    <DropdownTrigger>
-                      <Button isIconOnly>
-                        <ChevronDownIcon />
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                      disallowEmptySelection
-                      aria-label="Merge options"
-                      selectedKeys={selectedOption}
-                      selectionMode="single"
-                      onSelectionChange={(key: any) => setSelectedOption(key)}
-                      className="max-w-[300px]"
-                    >
-                      <DropdownItem
-                        key="merge"
-                        description={descriptionsMap["merge"]}
+                <div className="flex items-start ">
+                  <ButtonGroup variant="flat">
+                    <Button>{selectedOption}</Button>
+                    <Dropdown placement="bottom-end">
+                      <DropdownTrigger>
+                        <Button isIconOnly>
+                          <ChevronDownIcon />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu
+                        disallowEmptySelection
+                        aria-label="Merge options"
+                        selectedKeys={selectedOption}
+                        selectionMode="single"
+                        onSelectionChange={(key: any) => setSelectedOption(key)}
+                        className="max-w-[300px]"
                       >
-                        {labelsMap["merge"]}
-                      </DropdownItem>
-                      <DropdownItem
-                        key="squash"
-                        description={descriptionsMap["squash"]}
-                      >
-                        {labelsMap["squash"]}
-                      </DropdownItem>
-                      <DropdownItem
-                        key="rebase"
-                        description={descriptionsMap["rebase"]}
-                      >
-                        {labelsMap["rebase"]}
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </ButtonGroup>
-                <br />
-                {yourlink.map((link, index) => (
-                  // for selecting the Url user
-                  <p
-                    key={index}
-                    onClick={() => {
-                      selectedUrl.current = link.link_url;
-                      setselectedLink(link.link_url);
-                      setphotoUrl(link.photo_url);
-                      setname(link.user_name);
-                      setdesc(link.user_desc);
-                      fetchReseauxLink();
-                      fetchSiteLink();
-                    }}
-                    className="text-blue-600"
-                  >
-                    {link.link_url}
-                  </p>
-                ))}
+                        {yourlink.map((item, index) => (
+                          <DropdownItem
+                            key={item.link_url}
+                            onClick={() => {
+                              //fetch all data with the current selected url
+                              selectedUrl.current = item.link_url;
+                              setselectedLink(item.link_url);
+                              setphotoUrl(item.photo_url);
+                              setname(item.user_name);
+                              setdesc(item.user_desc);
+                              fetchReseauxLink();
+                              fetchSiteLink();
+                            }}
+                          >
+                            {item.link_url}
+                          </DropdownItem>
+                        ))}
+                      </DropdownMenu>
+                    </Dropdown>
+                  </ButtonGroup>
+                </div>
+
                 <div>
                   {" "}
                   <div className="flex justify-end">
@@ -1491,6 +1482,12 @@ export default function Dashboard() {
                       updateComponentCardText(itemsdnd);
                       updateComponentUrl(itemsdnd);
                       updateActiveUrl(itemsdnd);
+                    }
+                    if (reseauxitemsForAdd.length > 0) {
+                      addReseauxLink(reseauxitemsForAdd);
+                      setreseauxItemsForADD([]);
+                    } else {
+                      //
                     }
                   }}
                 >
@@ -1898,62 +1895,47 @@ export default function Dashboard() {
             {gridlayoutShow ? (
               <>
                 <p className="my-5">All link</p>
-                <ButtonGroup variant="flat">
-                  <Button>{labelsMap[selectedOptionValue]}</Button>
-                  <Dropdown placement="bottom-end">
-                    <DropdownTrigger>
-                      <Button isIconOnly>
-                        <ChevronDownIcon />
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu
-                      disallowEmptySelection
-                      aria-label="Merge options"
-                      selectedKeys={selectedOption}
-                      selectionMode="single"
-                      onSelectionChange={(key: any) => setSelectedOption(key)}
-                      className="max-w-[300px]"
-                    >
-                      <DropdownItem
-                        key="merge"
-                        description={descriptionsMap["merge"]}
+                <div className="flex items-start">
+                  <ButtonGroup variant="flat">
+                    <Button>{selectedOption}</Button>
+                    <Dropdown placement="bottom-end">
+                      <DropdownTrigger>
+                        <Button isIconOnly>
+                          <ChevronDownIcon />
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu
+                        disallowEmptySelection
+                        aria-label="Merge options"
+                        selectedKeys={selectedOption}
+                        selectionMode="single"
+                        onSelectionChange={(key: any) => setSelectedOption(key)}
+                        className="max-w-[300px]"
                       >
-                        {labelsMap["merge"]}
-                      </DropdownItem>
-                      <DropdownItem
-                        key="squash"
-                        description={descriptionsMap["squash"]}
-                      >
-                        {labelsMap["squash"]}
-                      </DropdownItem>
-                      <DropdownItem
-                        key="rebase"
-                        description={descriptionsMap["rebase"]}
-                      >
-                        {labelsMap["rebase"]}
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </ButtonGroup>
+                        {yourlink.map((item, index) => (
+                          <DropdownItem
+                            key={item.link_url}
+                            onClick={() => {
+                              //fetch all data with the current selected url
+                              selectedUrl.current = item.link_url;
+                              setselectedLink(item.link_url);
+                              setphotoUrl(item.photo_url);
+                              setname(item.user_name);
+                              setdesc(item.user_desc);
+                              fetchReseauxLink();
+                              fetchSiteLink();
+                            }}
+                          >
+                            {item.link_url}
+                          </DropdownItem>
+                        ))}
+                      </DropdownMenu>
+                    </Dropdown>
+                  </ButtonGroup>
+                </div>
+
                 <br />
-                {yourlink.map((link, index) => (
-                  <p
-                    key={index}
-                    onClick={() => {
-                      //fetch all data with the current selected url
-                      selectedUrl.current = link.link_url;
-                      setselectedLink(link.link_url);
-                      setphotoUrl(link.photo_url);
-                      setname(link.user_name);
-                      setdesc(link.user_desc);
-                      fetchReseauxLink();
-                      fetchSiteLink();
-                    }}
-                    className="text-blue-600"
-                  >
-                    {link.link_url}
-                  </p>
-                ))}
+
                 <div>
                   {" "}
                   <div className="flex justify-end">
@@ -2185,7 +2167,6 @@ export default function Dashboard() {
                 <br />
                 <Button
                   onPress={() => {
-                    //addItemdata();
                     if (itemsdndforAdd.length > 0) {
                       //if detect update ,Update in the function
                       addComponent(itemsdndforAdd);
@@ -2194,6 +2175,12 @@ export default function Dashboard() {
                       updateComponentCardText(itemsdnd);
                       updateComponentUrl(itemsdnd);
                       updateActiveUrl(itemsdnd);
+                    }
+                    if (reseauxitemsForAdd.length > 0) {
+                      addReseauxLink(reseauxitemsForAdd);
+                      setreseauxItemsForADD([]);
+                    } else {
+                      //
                     }
                   }}
                 >
@@ -2527,12 +2514,19 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  function fetchAlldatawithClick(item: LinkRetriv) {}
 }
 
 function ButtonLayout() {
   return (
-    <div>
-      <p>button layout</p>
+    <div className="grid grid-cols-3 gap-5">
+      <div className="flex rounded-sm size-[100px] bg-slate-400"></div>
+      <div className="flex rounded-sm size-[100px] bg-slate-400"></div>
+      <div className="flex rounded-sm size-[100px] bg-slate-400"></div>
+      <div className="flex rounded-sm size-[100px] bg-slate-400"></div>
+      <div className="flex rounded-sm size-[100px] bg-slate-400"></div>
+      <div className="flex rounded-sm size-[100px] bg-slate-400"></div>
     </div>
   );
 }

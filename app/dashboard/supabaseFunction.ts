@@ -106,10 +106,10 @@ const deleteComponentUrl = async (id: string) => {
 
 //ADD****************************************************************************
 
-const addReseauxLink = async (reseauxdata: ReseauxUrl[]) => {
+const addReseauxLink = async (reseauxToAdd: ReseauxUrl[]) => {
   const { data, error } = await supabase
     .from("users_reseaux")
-    .insert(reseauxdata);
+    .insert(reseauxToAdd);
   if (error) console.log(error);
   console.log(data);
 };

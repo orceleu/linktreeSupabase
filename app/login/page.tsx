@@ -1,15 +1,15 @@
 "use client";
 import React, { useTransition } from "react";
-import { login, signup } from "./actions";
+import { login, signInWithGoogle, signup } from "./actions";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { BsGoogle } from "react-icons/bs";
 import { Button } from "@nextui-org/button";
 import { Separator } from "@/components/ui/separator";
-
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
   const handleClickloginButton = (formData: FormData) => {
     startTransition(async () => {
       const errorMessage = await login(formData);
@@ -64,8 +64,7 @@ export default function LoginPage() {
         </button>
 
         <p>
-          {" "}
-          dont have any account{" "}
+          dont have any account
           <span
             onClick={() => {
               router.push("/signup");
@@ -79,7 +78,7 @@ export default function LoginPage() {
 
       <Separator className="my-3" />
 
-      <Button>
+      <Button onClick={signInWithGoogle}>
         <BsGoogle />
         Login with google
       </Button>
