@@ -1022,7 +1022,11 @@ export default function Dashboard() {
     if (data) {
       const storedUrlSelected = localStorage.getItem("urlstored");
       if (storedUrlSelected) {
-        const index = stringToNumber(storedUrlSelected);
+        let index = 0;
+        const indexforVerif = stringToNumber(storedUrlSelected);
+        if (indexforVerif) {
+          index = indexforVerif;
+        }
         setUrlStored(storedUrlSelected);
         console.log(storedUrlSelected);
         setyourlink(data);

@@ -1,28 +1,25 @@
 "use client";
 import React from "react";
-//import { useSearchParams } from "next/navigation";
-//import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 function Search() {
-  // const searchParams = useSearchParams();
-  // console.log(searchParams.get("search"));
-  // const AAAA = searchParams.get("search");
-  //const BBBB = searchParams.get("selectedurl");
+  const searchParams = useSearchParams();
+  console.log(searchParams.get("search"));
+  const AAAA = searchParams.get("search");
+  const BBBB = searchParams.get("selectedurl");
   return (
     <div>
-      <p>prob</p>
+      <p>{AAAA}</p>
+      <p>{BBBB}</p>
     </div>
   );
 }
 
 export default function Modifylink() {
   return (
-    <div>
-      <p>prob</p>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Search />
+    </Suspense>
   );
 }
-
-/*<Suspense fallback={<div>Loading...</div>}>
-      <Search />
-    </Suspense>*/
