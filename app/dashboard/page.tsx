@@ -73,6 +73,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   ChevronDownIcon,
+  EditIcon,
   FacebookIcon,
   InstagramIcon,
   LinkIcon,
@@ -214,6 +215,7 @@ export default function Dashboard() {
 
   //url user selectionne
   let selectedUrl = useRef("*");
+  const [urlStored, setUrlStored] = useState("");
   //let updatedItem = useRef<SiteUrl[]>([]);
   const [selectedOption, setSelectedOption] = useState("");
   const sensors = useSensors(
@@ -290,6 +292,54 @@ export default function Dashboard() {
       setIsHolding("");
     }
   };
+
+  const handleInputChange = (id: number, value: string) => {
+    setreseauxItems((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, reseaux_url: value } : input
+      )
+    );
+  };
+  /* const handleLabelChange = (id: number, label: string) => {
+    setreseauxItems((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, card_name: label } : input
+      )
+    );
+  };*/
+  const handleInputChangeForSite = (id: number, value: string) => {
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, url: value } : input
+      )
+    );
+    setItemsdndForADD((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, url: value } : input
+      )
+    );
+  };
+  const handleIsVisibleChangeForSite = (id: number, value: boolean) => {
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, is_active: value } : input
+      )
+    );
+  };
+
+  const handleLabelChangeForSite = (id: number, label: string) => {
+    setItemsdnd((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, texte: label } : input
+      )
+    );
+    setItemsdndForADD((prevInputs) =>
+      prevInputs.map((input) =>
+        input.position === id ? { ...input, texte: label } : input
+      )
+    );
+  };
+
   const MainSortableItem: React.FC<SortableItemProps> = ({
     item,
     index,
@@ -620,6 +670,301 @@ export default function Dashboard() {
         break;
     }
   }
+  const MainSortableItemForMobile: React.FC<SortableItemProps> = ({
+    item,
+    index,
+    isDragOn,
+    backgroundColor,
+    borderRadius,
+    borderRadiusColor,
+    padding,
+    margin,
+    isHolding,
+    witchComponent,
+  }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({ id: item.position });
+    let listenersOnstate = isDragOn ? { ...listeners } : undefined;
+    const style: Properties = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      padding: "8px",
+      borderRadius: "20px ",
+      marginTop: `20px`,
+      marginBottom: `1px`,
+      backgroundColor: "rgba(255, 255, 255, 1)",
+      border: `1px solid ${outlinecolorMainSotableitem}`,
+      touchAction: isHolding, // Important for mobile devices
+      userSelect: "none", // Prevents text selection during drag
+    };
+
+    return (
+      <>
+        <div style={style} className="flex justify-between ">
+          <div className="flex items-center gap-2 lg:gap-7 ">
+            <div
+              ref={setNodeRef}
+              {...attributes}
+              {...listenersOnstate}
+              style={{
+                padding: "5px",
+                cursor: "grab",
+              }}
+            >
+              {isDraggable ? (
+                <p className="text-emerald-600">|||</p>
+              ) : (
+                <p className="text-gray-200 lg:text-black">|||</p>
+              )}
+            </div>
+
+            {ReturnIconMain(witchComponent)}
+          </div>
+
+          <div>
+            {returnMainComponentForMobile(
+              witchComponent,
+              index,
+              item,
+              setNodeRef
+            )}
+          </div>
+        </div>{" "}
+      </>
+    );
+  };
+  function returnMainComponentForMobile(
+    witchComponent: string,
+    index: number,
+    item: any,
+    setNodeRef: any
+  ) {
+    switch (witchComponent) {
+      case "COMPONENT_LINK":
+        return (
+          <>
+            <br />
+            <div className="grid grid-cols-1 lg:grid-cols-2 lg:p-3  gap-2">
+              <div className="flex items-center gap-4">
+                <Link
+                  href={{
+                    pathname: "/modifylink",
+                    query: {
+                      search: item.position,
+                      selectedurl: selectedUrl.current,
+                      witchComponent: witchComponent,
+                    },
+                  }}
+                >
+                  {item.texte === "" ? <p>your desc</p> : item.texte}
+                </Link>
+                <EditIcon />
+              </div>
+
+              <div className="flex items-center gap-4">
+                {" "}
+                <Link
+                  href={{
+                    pathname: "/modifylink",
+                    query: {
+                      search: item.position,
+                      selectedurl: selectedUrl.current,
+                      witchComponent: witchComponent,
+                    },
+                  }}
+                >
+                  {item.url === "" ? <p>https://yourUrl</p> : item.url}
+                </Link>{" "}
+                <EditIcon />
+              </div>
+            </div>
+            <br />
+            <div className="flex justify-end">
+              <div className="flex items-center gap-2 lg:gap-5">
+                <p className="text-gray-500 text-sm">show on page:</p>
+                <Switch
+                  isSelected={item.is_active}
+                  aria-label="Automatic updates"
+                  onChange={() =>
+                    handleIsVisibleChangeForSite(item.position, !item.is_active)
+                  }
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => {
+                    handleDelete(item.position); //delete item on ui
+                    deleteComponentUrl(item.id);
+                    updateComponentPosition(itemsdnd); //delete item on database
+                  }}
+                >
+                  <TrashIcon />
+                </Button>
+              </div>
+            </div>
+          </>
+        );
+
+      case "COMPONENT_YOUTUBE_EMB":
+        return (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2    gap-2">
+              <div className="flex items-center gap-4">
+                {" "}
+                <Link
+                  href={{
+                    pathname: "/modifylink",
+                    query: {
+                      search: item.position,
+                      selectedurl: selectedUrl.current,
+                      witchComponent: witchComponent,
+                    },
+                  }}
+                >
+                  {item.url === "" ? <p>https://youTubeUrl</p> : item.url}
+                </Link>{" "}
+                <EditIcon />
+              </div>
+              <div className="flex justify-end">
+                <div className="flex items-center gap-2 lg:gap-5">
+                  <p className="text-gray-500 text-sm">show on page:</p>
+                  <Switch
+                    isSelected={item.is_active}
+                    aria-label="Automatic updates"
+                    onChange={() =>
+                      handleIsVisibleChangeForSite(
+                        item.position,
+                        !item.is_active
+                      )
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => {
+                      handleDelete(item.position); //delete item on ui
+                      deleteComponentUrl(item.id); //delete item on database
+                      updateComponentPosition(itemsdnd);
+                    }}
+                  >
+                    <TrashIcon />
+                  </Button>
+                </div>
+              </div>{" "}
+            </div>
+          </>
+        );
+      case "COMPONENT_SPOTIFY":
+        return (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2    gap-2 ">
+              <div className="flex items-center gap-4">
+                {" "}
+                <Link
+                  href={{
+                    pathname: "/modifylink",
+                    query: {
+                      search: item.position,
+                      selectedurl: selectedUrl.current,
+                      witchComponent: witchComponent,
+                    },
+                  }}
+                >
+                  {item.url === "" ? <p>https://spotifyUrl</p> : item.url}
+                </Link>{" "}
+                <EditIcon />
+              </div>
+              <div className="flex justify-end">
+                <div className="flex items-center gap-2 lg:gap-5">
+                  <p className="text-gray-500 text-sm">show on page:</p>
+                  <Switch
+                    isSelected={item.is_active}
+                    aria-label="Automatic updates"
+                    onChange={() =>
+                      handleIsVisibleChangeForSite(
+                        item.position,
+                        !item.is_active
+                      )
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => {
+                      handleDelete(item.position); //delete item on ui
+                      deleteComponentUrl(item.id); //delete item on database
+                      updateComponentPosition(itemsdnd);
+                    }}
+                  >
+                    <TrashIcon />
+                  </Button>
+                </div>
+              </div>{" "}
+            </div>
+          </>
+        );
+      case "COMPONENT_SEPARATOR":
+        return (
+          <div className="flex ">
+            <div className="flex justify-end mt-10 ">
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => {
+                  handleDelete(item.position); //delete item on ui
+                  deleteComponentUrl(item.id); //delete item on database
+                  updateComponentPosition(itemsdnd);
+                }}
+              >
+                <TrashIcon />
+              </Button>
+            </div>
+          </div>
+        );
+
+      case "COMPONENT_TEXT":
+        return (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2   gap-2">
+              <div className="flex items-center gap-4">
+                {" "}
+                <Link
+                  href={{
+                    pathname: "/modifylink",
+                    query: {
+                      search: item.position,
+                      selectedurl: selectedUrl.current,
+                      witchComponent: witchComponent,
+                    },
+                  }}
+                >
+                  {item.texte === "" ? <p>your text</p> : item.texte}
+                </Link>{" "}
+                <EditIcon />
+              </div>
+            </div>
+            <br />
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={() => {
+                  handleDelete(item.position); //delete item on ui
+                  deleteComponentUrl(item.id); //delete item on database
+                  updateComponentPosition(itemsdnd);
+                }}
+              >
+                <TrashIcon />
+              </Button>
+            </div>
+          </>
+        );
+
+      default:
+        null;
+        break;
+    }
+  }
 
   /*const descriptionsMap = {
     merge:
@@ -675,16 +1020,36 @@ export default function Dashboard() {
     if (error) console.log(error);
 
     if (data) {
-      setyourlink(data);
-      setselectedLink(data[0]?.link_url);
-      setphotoUrl(data[0].photo_url);
-      setSelectedOption(data[0]?.link_url);
-      setname(data[0].user_name);
-      setdesc(data[0].user_desc);
+      const storedUrlSelected = localStorage.getItem("urlstored");
+      if (storedUrlSelected) {
+        const index = stringToNumber(storedUrlSelected);
+        setUrlStored(storedUrlSelected);
+        console.log(storedUrlSelected);
+        setyourlink(data);
+        selectedUrl.current = data[index]?.link_url;
+        setselectedLink(data[index]?.link_url);
+        setphotoUrl(data[index].photo_url);
+        setSelectedOption(data[index]?.link_url);
+        setname(data[index].user_name);
+        setdesc(data[index].user_desc);
+      }
     }
 
     fetchReseauxLink();
     fetchSiteLink();
+  };
+  function stringToNumber(input: string): number {
+    const num = Number(input);
+
+    if (isNaN(num)) {
+      throw new Error("The input string is not a valid number.");
+    }
+
+    return num;
+  }
+  const saveUrlToLocal = (value: string) => {
+    localStorage.setItem("urlstored", value);
+    console.log(`data added:${value}`);
   };
   const is_url_dispo = async () => {
     const { data, error } = await supabase
@@ -1895,6 +2260,7 @@ export default function Dashboard() {
             {gridlayoutShow ? (
               <>
                 <p className="my-5">All link</p>
+
                 <div className="flex items-start">
                   <ButtonGroup variant="flat">
                     <Button>{selectedOption}</Button>
@@ -1924,6 +2290,7 @@ export default function Dashboard() {
                               setdesc(item.user_desc);
                               fetchReseauxLink();
                               fetchSiteLink();
+                              saveUrlToLocal(index.toString());
                             }}
                           >
                             {item.link_url}
@@ -2144,7 +2511,7 @@ export default function Dashboard() {
                       >
                         {itemsdnd.map((item: any, index: any) => (
                           <div key={index + 1}>
-                            <MainSortableItem
+                            <MainSortableItemForMobile
                               key={item.position}
                               item={item}
                               index={index}
@@ -2514,8 +2881,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  function fetchAlldatawithClick(item: LinkRetriv) {}
 }
 
 function ButtonLayout() {
