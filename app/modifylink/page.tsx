@@ -15,11 +15,14 @@ function Search() {
   );
 }
 
-/*export default function Modifylink() {
+export default function Modifylink() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Search />
-    </Suspense>
+    <div>
+      <p>prob</p>
+    </div>
   );
 }
-*/
+
+/*<Suspense fallback={<div>Loading...</div>}>
+      <Search />
+    </Suspense>*/
