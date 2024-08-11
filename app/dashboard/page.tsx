@@ -1020,13 +1020,14 @@ export default function Dashboard() {
     if (error) console.log(error);
 
     if (data) {
+      let index = 0;
+
       const storedUrlSelected = localStorage.getItem("urlstored");
       if (storedUrlSelected) {
-        let index = 0;
         const indexforVerif = stringToNumber(storedUrlSelected);
-        if (indexforVerif) {
-          index = indexforVerif;
-        }
+
+        index = indexforVerif;
+
         setUrlStored(storedUrlSelected);
         console.log(storedUrlSelected);
         setyourlink(data);
