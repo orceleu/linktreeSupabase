@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useSearchParams } from "next/navigation";
-export default function modifylink() {
+export default function Modifylink() {
   const searchParams = useSearchParams();
   console.log(searchParams.get("search"));
   const AAAA = searchParams.get("search");
