@@ -1,11 +1,12 @@
 "use client";
-import React, { useTransition } from "react";
+import React, { useEffect, useTransition } from "react";
 import { login, signInWithGoogle, signup } from "./actions";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { BsGoogle } from "react-icons/bs";
 import { Button } from "@nextui-org/button";
 import { Separator } from "@/components/ui/separator";
+import { supabaseBrowserClient } from "../supabase/supabaseInstance";
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -20,6 +21,17 @@ export default function LoginPage() {
       }
     });
   };
+  const isLogin = async () => {
+    const { data, error } = await supabaseBrowserClient.auth.getUser();
+    //const {data, error} = await supabase.auth.getSession();
+    if (!error || data?.user) {
+      router.push("/dashboard");
+    }
+  };
+  useEffect(() => {
+    isLogin();
+  }, []);
+
   return (
     <form className="max-w-xs mx-auto mt-8">
       <div className="mb-4">

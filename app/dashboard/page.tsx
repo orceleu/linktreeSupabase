@@ -1027,17 +1027,17 @@ export default function Dashboard() {
         const indexforVerif = stringToNumber(storedUrlSelected);
 
         index = indexforVerif;
-
         setUrlStored(storedUrlSelected);
-        console.log(storedUrlSelected);
-        setyourlink(data);
-        selectedUrl.current = data[index]?.link_url;
-        setselectedLink(data[index]?.link_url);
-        setphotoUrl(data[index].photo_url);
-        setSelectedOption(data[index]?.link_url);
-        setname(data[index].user_name);
-        setdesc(data[index].user_desc);
       }
+
+      console.log(storedUrlSelected);
+      setyourlink(data);
+      selectedUrl.current = data[index]?.link_url;
+      setselectedLink(data[index]?.link_url);
+      setphotoUrl(data[index].photo_url);
+      setSelectedOption(data[index]?.link_url);
+      setname(data[index].user_name);
+      setdesc(data[index].user_desc);
     }
 
     fetchReseauxLink();
