@@ -753,6 +753,7 @@ export default function Dashboard() {
                       search: item.position,
                       selectedurl: selectedUrl.current,
                       witchComponent: witchComponent,
+                      id: item.id,
                     },
                   }}
                 >
@@ -770,6 +771,7 @@ export default function Dashboard() {
                       search: item.position,
                       selectedurl: selectedUrl.current,
                       witchComponent: witchComponent,
+                      id: item.id,
                     },
                   }}
                 >
@@ -818,6 +820,7 @@ export default function Dashboard() {
                       search: item.position,
                       selectedurl: selectedUrl.current,
                       witchComponent: witchComponent,
+                      id: item.id,
                     },
                   }}
                 >
@@ -867,6 +870,7 @@ export default function Dashboard() {
                       search: item.position,
                       selectedurl: selectedUrl.current,
                       witchComponent: witchComponent,
+                      id: item.id,
                     },
                   }}
                 >
@@ -935,6 +939,7 @@ export default function Dashboard() {
                       search: item.position,
                       selectedurl: selectedUrl.current,
                       witchComponent: witchComponent,
+                      id: item.id,
                     },
                   }}
                 >
@@ -965,24 +970,6 @@ export default function Dashboard() {
         break;
     }
   }
-
-  /*const descriptionsMap = {
-    merge:
-      "All commits from the source branch are added to the destination branch via a merge commit.",
-    squash:
-      "All commits from the source branch are added to the destination branch as a single commit.",
-    rebase:
-      "All commits from the source branch are added to the destination branch individually.",
-  };*/
-
-  const labelsMap: any = {
-    merge: "Create a merge commit",
-    squash: "Squash and merge",
-    rebase: "Rebase and merge",
-  };
-
-  // Convert the Set to an Array and get the first value.
-  // const selectedOptionValue = Array.from(selectedOption)[0];
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
@@ -1598,6 +1585,7 @@ export default function Dashboard() {
                               setdesc(item.user_desc);
                               fetchReseauxLink();
                               fetchSiteLink();
+                              saveUrlToLocal(index.toString());
                             }}
                           >
                             {item.link_url}
@@ -1744,11 +1732,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <div key={index + 5} className="flex justify-end">
-                      <div key={index + 6} className="flex items-center gap-2">
-                        <p key={index + 7} className="text-gray-500 text-sm">
-                          show on page:
-                        </p>
-                        <Switch key={index + 8} />
+                      <div key={index + 6} className="flex justify-center p-2">
                         <Button
                           onPress={() => handleDeleteReseaux(item.position)}
                         >
@@ -2440,11 +2424,7 @@ export default function Dashboard() {
                       />
                     </div>
                     <div key={index + 5} className="flex justify-end">
-                      <div key={index + 6} className="flex items-center gap-2">
-                        <p key={index + 7} className="text-gray-500 text-sm">
-                          show on page:
-                        </p>
-                        <Switch key={index + 8} />
+                      <div key={index + 6} className="flex justify-center p-2">
                         <Button
                           onPress={() => handleDeleteReseaux(item.position)}
                         >

@@ -65,7 +65,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           <div className="my-5">
             <iframe
               className=" rounded-[20px]"
-              width={230}
+              width={250}
               src={`https://www.youtube.com/embed/fPq50rwItiY?si=CbB1e9XaxNivOxF-`}
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -76,7 +76,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
       case "COMPONENT_TEXT":
         return (
           <>
-            <p className="p-5 text-center">{item.texte}</p>
+            <p className="p-5 w-full text-center">{item.texte}</p>
           </>
         );
       case "COMPONENT_SPOTIFY":
@@ -87,7 +87,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           />
         );
       case "COMPONENT_SEPARATOR":
-        return <Separator className="my-5 w-full bg-h " />;
+        return <Separator className="my-5 w-full  " />;
 
       case "COMPONENT_LINK":
         return (
@@ -97,9 +97,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
               border: `1px solid ${borderRadiusColor}`,
               borderRadius: `${borderRadius}px`,
               margin: `${margin}px`,
-              width: "230px",
+
               padding: `${padding}px`,
             }}
+            className="w-full mx-5"
           >
             <p className="text-center ">{item.texte}</p>
           </div>

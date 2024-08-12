@@ -69,6 +69,24 @@ const updateComponentCardText = async (dataForUpdate: ComponentType[]) => {
     } // Critères de sélection pour l'enregistrement à mettre à jour
   );
 };
+const updateSingleComponentText = async (id: string, texte: string) => {
+  const { data, error } = await supabase
+
+    .from("component") // Remplacez par le nom de votre table
+    .update({ texte: texte }) // Remplacez par la colonne et la valeur à mettre à jour
+    .eq("id", id);
+  // Critères de sélection pour l'enregistrement à mettre à jour
+  if (error) console.log(error);
+};
+const updateSingleComponentUrl = async (id: string, url: string) => {
+  const { data, error } = await supabase
+
+    .from("component") // Remplacez par le nom de votre table
+    .update({ url: url }) // Remplacez par la colonne et la valeur à mettre à jour
+    .eq("id", id);
+  // Critères de sélection pour l'enregistrement à mettre à jour
+  if (error) console.log(error);
+};
 const updateComponentUrl = async (dataForUpdate: ComponentType[]) => {
   dataForUpdate.map(
     async (update) => {
@@ -130,4 +148,6 @@ export {
   updateActiveUrl,
   deleteComponentUrl,
   addComponent,
+  updateSingleComponentText,
+  updateSingleComponentUrl,
 };
